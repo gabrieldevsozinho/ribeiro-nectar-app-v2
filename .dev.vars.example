@@ -1,0 +1,22 @@
+# Copie para .dev.vars (fica só no seu computador e não vai para o git).
+# Em produção, os segredos são cadastrados com `npx wrangler secret put NOME`.
+
+AMBIENTE=desenvolvimento
+BETTER_AUTH_URL=http://localhost:5173
+
+# Segredo das sessões. Gere um com: node -e "console.log(crypto.randomUUID()+crypto.randomUUID())"
+BETTER_AUTH_SECRET=
+
+# --- Mapa -----------------------------------------------------------------------
+# google (padrão): cada empresa cadastra a própria chave do Google Maps no painel.
+# osm: OpenStreetMap + Nominatim, sem chave nem cartão. Bom para testar; em produção, veja o README.
+MAPA_PROVEDOR=osm
+# E-mail de contato enviado ao Nominatim (exigido pela política de uso deles).
+NOMINATIM_CONTATO=
+# Chave de teste do Google Maps: só é usada quando AMBIENTE=desenvolvimento.
+GOOGLE_MAPS_CHAVE_DEV=
+
+# --- E-mail (Resend) -------------------------------------------------------------
+# Sem chave, em desenvolvimento, o código de exclusão aparece no terminal.
+RESEND_API_KEY=
+EMAIL_REMETENTE="Ribeiro Néctar <nao-responda@ribeironectar.com.br>"

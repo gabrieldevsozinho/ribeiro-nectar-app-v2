@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/*
+ * Identidade visual do Ribeiro Néctar: tons de mel sobre fundo claro e quente.
+ * O tema claro é o padrão porque os revendedores usam o app na rua, sob sol.
+ */
+@theme {
+  --color-fundo: #fbf8f2;
+  --color-superficie: #ffffff;
+  --color-superficie-2: #f6f0e4;
+  --color-borda: #e8dcc8;
+  --color-borda-forte: #d6c6aa;
+  --color-texto: #2a2118;
+  --color-texto-2: #66584a;
+  --color-texto-3: #8f8070;
+
+  --color-mel: #e29a12;
+  --color-mel-forte: #c98408;
+  --color-mel-texto: #9a5f00;
+  --color-mel-claro: #fdf1d8;
+  --color-sobre-mel: #2a1a00;
+
+  --color-sucesso: #2b7d50;
+  --color-sucesso-claro: #e2f3e9;
+  --color-erro: #b93838;
+  --color-erro-claro: #fbe7e7;
+  --color-alerta: #96600f;
+  --color-alerta-claro: #fdf2d9;
+  --color-info: #2d5f9a;
+  --color-info-claro: #e5eef9;
+
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-titulo: "Raleway", "Plus Jakarta Sans Variable", ui-sans-serif, sans-serif;
+
+  --radius-cartao: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fundo: #14110d;
+    --color-superficie: #1d1914;
+    --color-superficie-2: #26201a;
+    --color-borda: #3a3128;
+    --color-borda-forte: #4d4136;
+    --color-texto: #f5efe6;
+    --color-texto-2: #c9bcad;
+    --color-texto-3: #9a8c7d;
+
+    --color-mel: #f2b13a;
+    --color-mel-forte: #f5bf5c;
+    --color-mel-texto: #f5bf5c;
+    --color-mel-claro: #3a2c14;
+    --color-sobre-mel: #2a1a00;
+
+    --color-sucesso: #6fcf97;
+    --color-sucesso-claro: #183225;
+    --color-erro: #f08a8a;
+    --color-erro-claro: #3a1c1c;
+    --color-alerta: #f2c46b;
+    --color-alerta-claro: #362a12;
+    --color-info: #8ab8f0;
+    --color-info-claro: #172a40;
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-texto);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Campos de formulário com tamanho confortável para o dedo no celular. */
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-mel);
+  outline-offset: 2px;
+}

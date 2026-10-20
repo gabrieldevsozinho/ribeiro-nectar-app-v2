@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ribeiro-nectar",
+  // API (Hono) no Worker; o app React é servido como arquivos estáticos.
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    // Qualquer endereço que não seja arquivo devolve o index.html (o React Router decide a tela).
+    "not_found_handling": "single-page-application",
+    // A API e o testador do Google Maps passam sempre pelo Worker.
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ribeiro-nectar",
+      // Troque pelo id que o comando `npx wrangler d1 create ribeiro-nectar` mostrar.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "drizzle/migracoes"
+    }
+  ],
+  // R2 entra na Fase 2 (fotos e comprovantes de venda). Para ativar:
+  // 1. `npx wrangler r2 bucket create ribeiro-nectar-arquivos`
+  // 2. descomente o bloco abaixo e rode `npm run cf-typegen`.
+  // "r2_buckets": [{ "binding": "ARQUIVOS", "bucket_name": "ribeiro-nectar-arquivos" }],
+  "vars": {
+    "AMBIENTE": "producao",
+    "BETTER_AUTH_URL": "https://www.ribeironectar.com.br",
+    "MAPA_PROVEDOR": "google",
+    "EMAIL_REMETENTE": "Ribeiro Néctar <nao-responda@ribeironectar.com.br>",
+    "NOMINATIM_CONTATO": "",
+    "GOOGLE_MAPS_CHAVE_DEV": ""
+  },
+  "observability": { "enabled": true },
+  "upload_source_maps": true
+}

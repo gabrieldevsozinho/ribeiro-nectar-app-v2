@@ -1,0 +1,23 @@
+# dependências
+/node_modules
+
+# build
+/dist
+
+# Cloudflare (banco local, cache do Wrangler)
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+
+# variáveis de ambiente
+.env*
+!.env.example
+
+# testes
+/coverage
+/test-results/
+/playwright-report/
+
+# misc
+.DS_Store
+*.tsbuildinfo

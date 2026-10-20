@@ -1,0 +1,1554 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "4d8a2e12-44b6-4df1-a7c2-9e7f522461da",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "auth_contas": {
+      "name": "auth_contas",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auth_contas_usuario_idx": {
+          "name": "auth_contas_usuario_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "auth_contas_user_id_auth_usuarios_id_fk": {
+          "name": "auth_contas_user_id_auth_usuarios_id_fk",
+          "tableFrom": "auth_contas",
+          "tableTo": "auth_usuarios",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auth_limites": {
+      "name": "auth_limites",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_request": {
+          "name": "last_request",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auth_limites_key_unique": {
+          "name": "auth_limites_key_unique",
+          "columns": [
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auth_sessoes": {
+      "name": "auth_sessoes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auth_sessoes_token_unique": {
+          "name": "auth_sessoes_token_unique",
+          "columns": [
+            "token"
+          ],
+          "isUnique": true
+        },
+        "auth_sessoes_usuario_idx": {
+          "name": "auth_sessoes_usuario_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "auth_sessoes_user_id_auth_usuarios_id_fk": {
+          "name": "auth_sessoes_user_id_auth_usuarios_id_fk",
+          "tableFrom": "auth_sessoes",
+          "tableTo": "auth_usuarios",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auth_usuarios": {
+      "name": "auth_usuarios",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auth_usuarios_email_unique": {
+          "name": "auth_usuarios_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auth_verificacoes": {
+      "name": "auth_verificacoes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auth_verificacoes_identificador_idx": {
+          "name": "auth_verificacoes_identificador_idx",
+          "columns": [
+            "identifier"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "codigos_exclusao": {
+      "name": "codigos_exclusao",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revendedor_id": {
+          "name": "revendedor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "master_id": {
+          "name": "master_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "codigo_hash": {
+          "name": "codigo_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tentativas": {
+          "name": "tentativas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "expira_em": {
+          "name": "expira_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "usado_em": {
+          "name": "usado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "codigos_exclusao_revendedor_idx": {
+          "name": "codigos_exclusao_revendedor_idx",
+          "columns": [
+            "revendedor_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "codigos_exclusao_empresa_id_empresas_id_fk": {
+          "name": "codigos_exclusao_empresa_id_empresas_id_fk",
+          "tableFrom": "codigos_exclusao",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "codigos_exclusao_revendedor_id_perfis_id_fk": {
+          "name": "codigos_exclusao_revendedor_id_perfis_id_fk",
+          "tableFrom": "codigos_exclusao",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "revendedor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "codigos_exclusao_master_id_perfis_id_fk": {
+          "name": "codigos_exclusao_master_id_perfis_id_fk",
+          "tableFrom": "codigos_exclusao",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "master_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "empresas": {
+      "name": "empresas",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ativa": {
+          "name": "ativa",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "limite_masters": {
+          "name": "limite_masters",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 3
+        },
+        "limite_revendedores": {
+          "name": "limite_revendedores",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 10
+        },
+        "stripe_customer_id": {
+          "name": "stripe_customer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "stripe_subscription_id": {
+          "name": "stripe_subscription_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "empresas_slug_unique": {
+          "name": "empresas_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "empresas_nome": {
+          "name": "empresas_nome",
+          "value": "length(trim(\"empresas\".\"nome\")) between 2 and 120"
+        },
+        "empresas_slug": {
+          "name": "empresas_slug",
+          "value": "length(\"empresas\".\"slug\") between 3 and 60\n        and \"empresas\".\"slug\" not glob '*[^a-z0-9-]*'\n        and \"empresas\".\"slug\" not like '-%' and \"empresas\".\"slug\" not like '%-' and instr(\"empresas\".\"slug\", '--') = 0\n        and \"empresas\".\"slug\" not in ('admin', 'api', 'login', 'sair', 'static', 'public', 'assets', 'favicon-ico', 'icones')"
+        },
+        "empresas_limite_masters": {
+          "name": "empresas_limite_masters",
+          "value": "\"empresas\".\"limite_masters\" >= 1"
+        },
+        "empresas_limite_revendedores": {
+          "name": "empresas_limite_revendedores",
+          "value": "\"empresas\".\"limite_revendedores\" >= 0"
+        }
+      }
+    },
+    "google_maps_empresa": {
+      "name": "google_maps_empresa",
+      "columns": {
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chave": {
+          "name": "chave",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'nao_configurada'"
+        },
+        "ultimo_erro": {
+          "name": "ultimo_erro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "validada_em": {
+          "name": "validada_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "atualizada_por": {
+          "name": "atualizada_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "atualizada_em": {
+          "name": "atualizada_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "google_maps_empresa_empresa_id_empresas_id_fk": {
+          "name": "google_maps_empresa_empresa_id_empresas_id_fk",
+          "tableFrom": "google_maps_empresa",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "google_maps_empresa_atualizada_por_perfis_id_fk": {
+          "name": "google_maps_empresa_atualizada_por_perfis_id_fk",
+          "tableFrom": "google_maps_empresa",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "atualizada_por"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "google_maps_status": {
+          "name": "google_maps_status",
+          "value": "\"google_maps_empresa\".\"status\" in ('nao_configurada', 'valida', 'com_erro')"
+        },
+        "google_maps_chave_status": {
+          "name": "google_maps_chave_status",
+          "value": "(\"google_maps_empresa\".\"chave\" is null) = (\"google_maps_empresa\".\"status\" = 'nao_configurada')"
+        }
+      }
+    },
+    "itens_venda": {
+      "name": "itens_venda",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "venda_id": {
+          "name": "venda_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "produto_id": {
+          "name": "produto_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantidade_milesimos": {
+          "name": "quantidade_milesimos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "preco_unitario_centavos": {
+          "name": "preco_unitario_centavos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subtotal_centavos": {
+          "name": "subtotal_centavos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "generated": {
+            "as": "(cast(round(quantidade_milesimos * preco_unitario_centavos / 1000.0) as integer))",
+            "type": "stored"
+          }
+        },
+        "adicionado_por": {
+          "name": "adicionado_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "adicionado_em": {
+          "name": "adicionado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "itens_venda_venda_idx": {
+          "name": "itens_venda_venda_idx",
+          "columns": [
+            "venda_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "itens_venda_venda_id_vendas_id_fk": {
+          "name": "itens_venda_venda_id_vendas_id_fk",
+          "tableFrom": "itens_venda",
+          "tableTo": "vendas",
+          "columnsFrom": [
+            "venda_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "itens_venda_empresa_id_empresas_id_fk": {
+          "name": "itens_venda_empresa_id_empresas_id_fk",
+          "tableFrom": "itens_venda",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "itens_venda_produto_id_produtos_id_fk": {
+          "name": "itens_venda_produto_id_produtos_id_fk",
+          "tableFrom": "itens_venda",
+          "tableTo": "produtos",
+          "columnsFrom": [
+            "produto_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "itens_venda_adicionado_por_perfis_id_fk": {
+          "name": "itens_venda_adicionado_por_perfis_id_fk",
+          "tableFrom": "itens_venda",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "adicionado_por"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "itens_quantidade": {
+          "name": "itens_quantidade",
+          "value": "\"itens_venda\".\"quantidade_milesimos\" > 0"
+        },
+        "itens_preco": {
+          "name": "itens_preco",
+          "value": "\"itens_venda\".\"preco_unitario_centavos\" >= 0"
+        }
+      }
+    },
+    "perfis": {
+      "name": "perfis",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "papel": {
+          "name": "papel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "endereco": {
+          "name": "endereco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "compartilha_vendas": {
+          "name": "compartilha_vendas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "bloqueado": {
+          "name": "bloqueado",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "deve_trocar_senha": {
+          "name": "deve_trocar_senha",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "excluido_em": {
+          "name": "excluido_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "perfis_user_id_unique": {
+          "name": "perfis_user_id_unique",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": true
+        },
+        "perfis_empresa_papel_idx": {
+          "name": "perfis_empresa_papel_idx",
+          "columns": [
+            "empresa_id",
+            "papel"
+          ],
+          "isUnique": false
+        },
+        "perfis_email_unico": {
+          "name": "perfis_email_unico",
+          "columns": [
+            "lower(\"email\")"
+          ],
+          "isUnique": true,
+          "where": "\"perfis\".\"excluido_em\" is null and \"perfis\".\"email\" is not null"
+        }
+      },
+      "foreignKeys": {
+        "perfis_user_id_auth_usuarios_id_fk": {
+          "name": "perfis_user_id_auth_usuarios_id_fk",
+          "tableFrom": "perfis",
+          "tableTo": "auth_usuarios",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "perfis_empresa_id_empresas_id_fk": {
+          "name": "perfis_empresa_id_empresas_id_fk",
+          "tableFrom": "perfis",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "perfis_papel": {
+          "name": "perfis_papel",
+          "value": "\"perfis\".\"papel\" in ('admin_plataforma', 'master', 'revendedor')"
+        },
+        "perfis_nome": {
+          "name": "perfis_nome",
+          "value": "length(trim(\"perfis\".\"nome\")) between 1 and 120"
+        },
+        "perfis_admin_sem_empresa": {
+          "name": "perfis_admin_sem_empresa",
+          "value": "(\"perfis\".\"papel\" = 'admin_plataforma') = (\"perfis\".\"empresa_id\" is null)"
+        },
+        "perfis_compartilha_so_master": {
+          "name": "perfis_compartilha_so_master",
+          "value": "\"perfis\".\"papel\" = 'master' or \"perfis\".\"compartilha_vendas\" = 0"
+        }
+      }
+    },
+    "pontos_venda": {
+      "name": "pontos_venda",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cnpj": {
+          "name": "cnpj",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "contato": {
+          "name": "contato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "logradouro": {
+          "name": "logradouro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "numero": {
+          "name": "numero",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "bairro": {
+          "name": "bairro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "cidade": {
+          "name": "cidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "uf": {
+          "name": "uf",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cep": {
+          "name": "cep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "localizacao_status": {
+          "name": "localizacao_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pendente'"
+        },
+        "criado_por": {
+          "name": "criado_por",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "pontos_cnpj_unico": {
+          "name": "pontos_cnpj_unico",
+          "columns": [
+            "empresa_id",
+            "cnpj"
+          ],
+          "isUnique": true,
+          "where": "\"pontos_venda\".\"cnpj\" is not null"
+        },
+        "pontos_endereco_unico": {
+          "name": "pontos_endereco_unico",
+          "columns": [
+            "empresa_id",
+            "lower(trim(\"logradouro\"))",
+            "lower(trim(case when \"numero\" is null then '' else \"numero\" end))",
+            "lower(trim(\"cidade\"))",
+            "uf"
+          ],
+          "isUnique": true
+        },
+        "pontos_cidade_idx": {
+          "name": "pontos_cidade_idx",
+          "columns": [
+            "empresa_id",
+            "uf",
+            "cidade"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "pontos_venda_empresa_id_empresas_id_fk": {
+          "name": "pontos_venda_empresa_id_empresas_id_fk",
+          "tableFrom": "pontos_venda",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "pontos_venda_criado_por_perfis_id_fk": {
+          "name": "pontos_venda_criado_por_perfis_id_fk",
+          "tableFrom": "pontos_venda",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "criado_por"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "pontos_nome": {
+          "name": "pontos_nome",
+          "value": "length(trim(\"pontos_venda\".\"nome\")) between 1 and 160"
+        },
+        "pontos_cnpj": {
+          "name": "pontos_cnpj",
+          "value": "\"pontos_venda\".\"cnpj\" is null or (length(\"pontos_venda\".\"cnpj\") = 14 and \"pontos_venda\".\"cnpj\" not glob '*[^0-9]*')"
+        },
+        "pontos_logradouro": {
+          "name": "pontos_logradouro",
+          "value": "length(trim(\"pontos_venda\".\"logradouro\")) between 1 and 200"
+        },
+        "pontos_cidade": {
+          "name": "pontos_cidade",
+          "value": "length(trim(\"pontos_venda\".\"cidade\")) between 1 and 120"
+        },
+        "pontos_uf": {
+          "name": "pontos_uf",
+          "value": "length(\"pontos_venda\".\"uf\") = 2 and \"pontos_venda\".\"uf\" glob '[A-Z][A-Z]'"
+        },
+        "pontos_cep": {
+          "name": "pontos_cep",
+          "value": "\"pontos_venda\".\"cep\" is null or (length(\"pontos_venda\".\"cep\") = 8 and \"pontos_venda\".\"cep\" not glob '*[^0-9]*')"
+        },
+        "pontos_latitude": {
+          "name": "pontos_latitude",
+          "value": "\"pontos_venda\".\"latitude\" between -90 and 90"
+        },
+        "pontos_longitude": {
+          "name": "pontos_longitude",
+          "value": "\"pontos_venda\".\"longitude\" between -180 and 180"
+        },
+        "pontos_localizacao_status": {
+          "name": "pontos_localizacao_status",
+          "value": "\"pontos_venda\".\"localizacao_status\" in ('pendente', 'automatica', 'ajustada')"
+        },
+        "pontos_coordenadas_completas": {
+          "name": "pontos_coordenadas_completas",
+          "value": "(\"pontos_venda\".\"latitude\" is null) = (\"pontos_venda\".\"longitude\" is null)"
+        },
+        "pontos_status_coordenadas": {
+          "name": "pontos_status_coordenadas",
+          "value": "(\"pontos_venda\".\"localizacao_status\" = 'pendente') = (\"pontos_venda\".\"latitude\" is null)"
+        }
+      }
+    },
+    "produtos": {
+      "name": "produtos",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unidade": {
+          "name": "unidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "preco_sugerido_centavos": {
+          "name": "preco_sugerido_centavos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "produtos_nome_unidade_unico": {
+          "name": "produtos_nome_unidade_unico",
+          "columns": [
+            "empresa_id",
+            "lower(trim(\"nome\"))",
+            "lower(trim(\"unidade\"))"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "produtos_empresa_id_empresas_id_fk": {
+          "name": "produtos_empresa_id_empresas_id_fk",
+          "tableFrom": "produtos",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "produtos_nome": {
+          "name": "produtos_nome",
+          "value": "length(trim(\"produtos\".\"nome\")) between 1 and 120"
+        },
+        "produtos_unidade": {
+          "name": "produtos_unidade",
+          "value": "length(trim(\"produtos\".\"unidade\")) between 1 and 30"
+        },
+        "produtos_preco": {
+          "name": "produtos_preco",
+          "value": "\"produtos\".\"preco_sugerido_centavos\" >= 0"
+        }
+      }
+    },
+    "vendas": {
+      "name": "vendas",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ponto_venda_id": {
+          "name": "ponto_venda_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vendedor_id": {
+          "name": "vendedor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data_venda": {
+          "name": "data_venda",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "valor_total_centavos": {
+          "name": "valor_total_centavos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "observacao": {
+          "name": "observacao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "vendas_empresa_data_idx": {
+          "name": "vendas_empresa_data_idx",
+          "columns": [
+            "empresa_id",
+            "data_venda"
+          ],
+          "isUnique": false
+        },
+        "vendas_ponto_data_idx": {
+          "name": "vendas_ponto_data_idx",
+          "columns": [
+            "ponto_venda_id",
+            "data_venda"
+          ],
+          "isUnique": false
+        },
+        "vendas_vendedor_data_idx": {
+          "name": "vendas_vendedor_data_idx",
+          "columns": [
+            "vendedor_id",
+            "data_venda"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "vendas_empresa_id_empresas_id_fk": {
+          "name": "vendas_empresa_id_empresas_id_fk",
+          "tableFrom": "vendas",
+          "tableTo": "empresas",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendas_ponto_venda_id_pontos_venda_id_fk": {
+          "name": "vendas_ponto_venda_id_pontos_venda_id_fk",
+          "tableFrom": "vendas",
+          "tableTo": "pontos_venda",
+          "columnsFrom": [
+            "ponto_venda_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vendas_vendedor_id_perfis_id_fk": {
+          "name": "vendas_vendedor_id_perfis_id_fk",
+          "tableFrom": "vendas",
+          "tableTo": "perfis",
+          "columnsFrom": [
+            "vendedor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "vendas_observacao": {
+          "name": "vendas_observacao",
+          "value": "\"vendas\".\"observacao\" is null or length(\"vendas\".\"observacao\") <= 500"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {
+      "perfis_email_unico": {
+        "columns": {
+          "lower(\"email\")": {
+            "isExpression": true
+          }
+        }
+      },
+      "pontos_endereco_unico": {
+        "columns": {
+          "lower(trim(\"logradouro\"))": {
+            "isExpression": true
+          },
+          "lower(trim(case when \"numero\" is null then '' else \"numero\" end))": {
+            "isExpression": true
+          },
+          "lower(trim(\"cidade\"))": {
+            "isExpression": true
+          }
+        }
+      },
+      "produtos_nome_unidade_unico": {
+        "columns": {
+          "lower(trim(\"nome\"))": {
+            "isExpression": true
+          },
+          "lower(trim(\"unidade\"))": {
+            "isExpression": true
+          }
+        }
+      }
+    }
+  }
+}
