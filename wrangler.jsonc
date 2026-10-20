@@ -5,6 +5,12 @@
   "main": "./src/worker/index.ts",
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
+  // O D1 não roda na América do Sul: o banco fica na região ENAM, servido de Miami (MIA). O Worker roda na
+  // região de nuvem mais próxima dele (Google, Carolina do Sul): as várias consultas de cada tela ficam
+  // rápidas e sobra uma só ida e volta Brasil ↔ EUA por requisição. Os arquivos das telas continuam saindo
+  // do servidor mais próximo do usuário. (O modo "smart" faria isso sozinho, mas só depois de observar
+  // tráfego de vários lugares.)
+  "placement": { "region": "gcp:us-east1" },
   "assets": {
     // Qualquer endereço que não seja arquivo devolve o index.html (o React Router decide a tela).
     "not_found_handling": "single-page-application",
