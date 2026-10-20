@@ -1,4 +1,4 @@
-import { useEffect, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { Link } from "react-router";
 
 function juntar(...classes: (string | false | null | undefined)[]) {
@@ -69,22 +69,49 @@ export function Campo({
   ...props
 }: ComponentProps<"input"> & { rotulo: string; dica?: ReactNode; erro?: string }) {
   const idCampo = id ?? name;
+  // Campos de senha ganham o botão "mostrar / ocultar".
+  const ehSenha = props.type === "password";
+  const [mostrar, setMostrar] = useState(false);
+  const campo = (
+    <input
+      id={idCampo}
+      name={name}
+      aria-invalid={erro ? true : undefined}
+      aria-describedby={erro ? `${idCampo}-erro` : undefined}
+      className={juntar(
+        "min-h-11 w-full rounded-xl border bg-superficie px-3.5 text-base text-texto placeholder:text-texto-3 md:text-[15px]",
+        ehSenha && "pr-12",
+        erro ? "border-erro" : "border-borda-forte focus:border-mel",
+      )}
+      {...props}
+      type={ehSenha && mostrar ? "text" : props.type}
+    />
+  );
   return (
     <div className={juntar("flex flex-col gap-1.5", className)}>
       <label htmlFor={idCampo} className="text-sm font-semibold text-texto">
         {rotulo}
       </label>
-      <input
-        id={idCampo}
-        name={name}
-        aria-invalid={erro ? true : undefined}
-        aria-describedby={erro ? `${idCampo}-erro` : undefined}
-        className={juntar(
-          "min-h-11 rounded-xl border bg-superficie px-3.5 text-base text-texto placeholder:text-texto-3 md:text-[15px]",
-          erro ? "border-erro" : "border-borda-forte focus:border-mel",
-        )}
-        {...props}
-      />
+      {ehSenha ? (
+        <div className="relative">
+          {campo}
+          <button
+            type="button"
+            onClick={() => setMostrar((m) => !m)}
+            aria-label={mostrar ? "Ocultar senha" : "Mostrar senha"}
+            aria-pressed={mostrar}
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-texto-3 hover:text-texto"
+          >
+            <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+              <circle cx="12" cy="12" r="3" />
+              {mostrar && <path d="M4 4l16 16" />}
+            </svg>
+          </button>
+        </div>
+      ) : (
+        campo
+      )}
       {erro ? (
         <p id={`${idCampo}-erro`} className="text-sm text-erro">
           {erro}
