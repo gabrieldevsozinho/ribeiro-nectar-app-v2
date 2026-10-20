@@ -65,6 +65,13 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
