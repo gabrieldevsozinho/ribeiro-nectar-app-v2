@@ -59,6 +59,19 @@ export type ConfigMapaCliente = {
   disponivel: boolean;
 };
 
+/** Partes do endereço usadas para localizar o comércio no mapa. */
+export type EnderecoBusca = { logradouro: string; numero: string; bairro: string; cidade: string; uf: string; cep: string };
+
+/**
+ * O quanto o ponto encontrado é preciso: "exata" (rua e número), "rua" (a rua, sem o número exato:
+ * o OpenStreetMap muitas vezes não tem o número) ou "cidade" (só o centro da cidade).
+ */
+export type PrecisaoLocalizacao = "exata" | "rua" | "cidade";
+
+export type RespostaGeocodificacao =
+  | { ok: true; ponto: { lat: number; lng: number; precisao: PrecisaoLocalizacao } | null }
+  | { ok: false };
+
 export type CidadeComVendas = { cidade: string; uf: string; pontos: number; vendas: number; ultimaVenda: string };
 
 export type PontoComVendas = {

@@ -1,6 +1,6 @@
 /** Chamadas usadas por mais de uma tela (mapa, pontos, vendas). */
 import type { ResultadoTesteMaps } from "@/compartilhado/google-maps-erros";
-import type { PaginaVendas, PontoPendente } from "@/compartilhado/tipos";
+import type { EnderecoBusca, PaginaVendas, PontoPendente, RespostaGeocodificacao } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa, fila } from "./api";
 
 /** Avisa o sistema que o Google recusou a chave durante o uso (os masters veem a faixa no topo). */
@@ -9,10 +9,8 @@ export function reportarFalhaMaps(slug: string, resultado: ResultadoTesteMaps) {
 }
 
 /** Endereço → coordenadas pelo Nominatim (modo OpenStreetMap), passando pelo Worker. */
-export function geocodificarEndereco(slug: string, endereco: string) {
-  return api
-    .post<{ ok: true; ponto: { lat: number; lng: number } | null } | { ok: false }>(daEmpresa(slug, "/geocodificar"), { endereco })
-    .catch(() => ({ ok: false }) as const);
+export function geocodificarEndereco(slug: string, endereco: EnderecoBusca): Promise<RespostaGeocodificacao> {
+  return api.post<RespostaGeocodificacao>(daEmpresa(slug, "/geocodificar"), endereco).catch(() => ({ ok: false }) as const);
 }
 
 export function pontosPendentes(slug: string) {

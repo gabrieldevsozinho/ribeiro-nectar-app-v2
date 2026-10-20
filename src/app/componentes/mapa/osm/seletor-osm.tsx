@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
+import type { EnderecoBusca, PrecisaoLocalizacao } from "@/compartilhado/tipos";
 import { Aviso, Botao } from "../../ui";
 import { geocodificarEndereco } from "../../../chamadas";
 import { carregarLeaflet, criarMapa, iconePino, CENTRO_BRASIL_OSM } from "./leaflet";
@@ -9,12 +10,19 @@ type Coordenadas = { lat: number; lng: number };
 type Props = {
   slug: string;
   coordenadas: Coordenadas | null;
-  enderecoAtual: () => string;
+  /** Lê o endereço digitado no formulário, na hora do clique. */
+  enderecoBusca: () => EnderecoBusca;
   aoMudar: (coordenadas: Coordenadas, status: "automatica" | "ajustada") => void;
 };
 
+/** O que dizer ao usuário conforme o quanto o endereço foi encontrado. */
+const AVISO_POR_PRECISAO: Record<Exclude<PrecisaoLocalizacao, "exata">, string> = {
+  rua: "Encontramos a rua, mas não o número exato (o OpenStreetMap nem sempre tem os números). Arraste o pino até o comércio.",
+  cidade: "Encontramos só a cidade. Dê zoom, e toque no mapa no local do comércio.",
+};
+
 /** Localiza o endereço (Nominatim) e deixa ajustar o pino no mapa do OpenStreetMap. */
-export function SeletorOsm({ slug, coordenadas, enderecoAtual, aoMudar }: Props) {
+export function SeletorOsm({ slug, coordenadas, enderecoBusca, aoMudar }: Props) {
   const elemento = useRef<HTMLDivElement>(null);
   const estado = useRef<{ L: typeof Leaflet; mapa: Leaflet.Map; marcador: Leaflet.Marker | null } | null>(null);
   const aoMudarRef = useRef(aoMudar);
@@ -68,9 +76,9 @@ export function SeletorOsm({ slug, coordenadas, enderecoAtual, aoMudar }: Props)
   }, []);
 
   async function localizar() {
-    const endereco = enderecoAtual();
-    if (endereco.length < 12) {
-      setAviso("Preencha a rua, o número e a cidade antes de localizar.");
+    const endereco = enderecoBusca();
+    if (!endereco.logradouro.trim() || !endereco.cidade.trim() || !endereco.uf) {
+      setAviso("Preencha a rua, a cidade e o estado antes de localizar.");
       return;
     }
     setBuscando(true);
@@ -78,9 +86,17 @@ export function SeletorOsm({ slug, coordenadas, enderecoAtual, aoMudar }: Props)
     const resultado = await geocodificarEndereco(slug, endereco);
     setBuscando(false);
     if (!resultado.ok) return setAviso("Não foi possível consultar o serviço de endereços agora. Toque no mapa no local do comércio.");
-    if (!resultado.ponto) return setAviso("Não encontramos este endereço. Toque no mapa no local do comércio.");
-    colocarPino(resultado.ponto, true);
-    aoMudar(resultado.ponto, "automatica");
+    const achado = resultado.ponto;
+    if (!achado) return setAviso("Não encontramos este endereço. Toque no mapa no local do comércio.");
+
+    if (achado.precisao === "cidade") {
+      // O centro da cidade não é a localização do comércio: leva o mapa até lá, sem colocar pino.
+      estado.current?.mapa.setView([achado.lat, achado.lng], 14);
+      return setAviso(AVISO_POR_PRECISAO.cidade);
+    }
+    colocarPino(achado, true);
+    aoMudar(achado, "automatica");
+    if (achado.precisao === "rua") setAviso(AVISO_POR_PRECISAO.rua);
   }
 
   return (

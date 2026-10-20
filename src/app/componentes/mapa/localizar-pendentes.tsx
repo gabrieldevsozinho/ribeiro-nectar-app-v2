@@ -5,7 +5,7 @@ import { definirLocalizacao, geocodificarEndereco, pontosPendentes } from "../..
 import type { ConfigMapaCliente } from "./provedor-mapa";
 
 type Pendente = { id: string; logradouro: string; numero: string | null; bairro: string | null; cidade: string; uf: string; cep: string | null };
-type Geocodificar = (endereco: string) => Promise<{ lat: number; lng: number } | null>;
+type Geocodificar = (pendente: Pendente) => Promise<{ lat: number; lng: number } | null>;
 
 function montarEndereco(p: Pendente) {
   return [[p.logradouro, p.numero].filter(Boolean).join(", "), p.bairro, `${p.cidade} - ${p.uf}`, p.cep, "Brasil"]
@@ -27,8 +27,8 @@ export function LocalizarPendentes({ config, automatico = false }: { config: Con
 function LocalizadorGoogle({ slug, automatico }: { slug: string; automatico: boolean }) {
   const geocodificacao = useMapsLibrary("geocoding");
   const geocodificar: Geocodificar | null = geocodificacao
-    ? async (endereco) => {
-        const { results } = await new geocodificacao.Geocoder().geocode({ address: endereco, region: "br" });
+    ? async (pendente) => {
+        const { results } = await new geocodificacao.Geocoder().geocode({ address: montarEndereco(pendente), region: "br" });
         const local = results[0]?.geometry.location;
         return local ? { lat: local.lat(), lng: local.lng() } : null;
       }
@@ -37,10 +37,18 @@ function LocalizadorGoogle({ slug, automatico }: { slug: string; automatico: boo
 }
 
 function LocalizadorOsm({ slug, automatico }: { slug: string; automatico: boolean }) {
-  const geocodificar: Geocodificar = async (endereco) => {
-    const resultado = await geocodificarEndereco(slug, endereco);
+  const geocodificar: Geocodificar = async (p) => {
+    const resultado = await geocodificarEndereco(slug, {
+      logradouro: p.logradouro,
+      numero: p.numero ?? "",
+      bairro: p.bairro ?? "",
+      cidade: p.cidade,
+      uf: p.uf,
+      cep: p.cep ?? "",
+    });
     if (!resultado.ok) throw new Error("servico_indisponivel");
-    return resultado.ponto;
+    // Só o centro da cidade não localiza o comércio: fica pendente para o master ajustar pelo pino.
+    return resultado.ponto && resultado.ponto.precisao !== "cidade" ? resultado.ponto : null;
   };
   return <Localizador slug={slug} automatico={automatico} geocodificar={geocodificar} />;
 }
@@ -66,7 +74,7 @@ function Localizador({ slug, automatico, geocodificar }: { slug: string; automat
 
     for (const [indice, p] of pendentes.entries()) {
       try {
-        const local = await buscar(montarEndereco(p));
+        const local = await buscar(p);
         if (local) await definirLocalizacao(slug, p.id, local.lat, local.lng, "automatica");
         else falhas++;
       } catch {

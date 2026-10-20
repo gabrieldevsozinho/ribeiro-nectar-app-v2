@@ -99,7 +99,7 @@ export const rotasEmpresa = new Hono<AppEnv>()
     return c.json<DadosMapa>({ cidades, pontos, pendentes });
   })
   .post("/geocodificar", validar("json", esquemaGeocodificar), async (c) =>
-    c.json(await geocodificarEndereco(c.env, c.req.valid("json").endereco)),
+    c.json(await geocodificarEndereco(c.env, c.req.valid("json"))),
   )
 
   // --- Vendas --------------------------------------------------------------------

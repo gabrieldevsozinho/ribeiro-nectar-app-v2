@@ -81,7 +81,14 @@ export const esquemaRegistrarVenda = z.object({
 
 export const esquemaAcrescentarItens = z.object({ itens: esquemaItens });
 
-export const esquemaGeocodificar = z.object({ endereco: z.string().max(300) });
+export const esquemaGeocodificar = z.object({
+  logradouro: z.string().max(200).default(""),
+  numero: z.string().max(30).default(""),
+  bairro: z.string().max(120).default(""),
+  cidade: z.string().max(120),
+  uf: z.string().max(2),
+  cep: z.string().max(20).default(""),
+});
 
 export const esquemaNovoUsuario = z.object({
   nome: texto(120),

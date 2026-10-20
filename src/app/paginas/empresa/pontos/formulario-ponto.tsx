@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { formatarCep, formatarCnpj } from "@/compartilhado/formato";
-import type { ConfigMapaCliente, DadosPonto, StatusLocalizacao } from "@/compartilhado/tipos";
+import type { ConfigMapaCliente, DadosPonto, EnderecoBusca, StatusLocalizacao } from "@/compartilhado/tipos";
 import { UFS } from "@/compartilhado/uf";
 import { lerFormulario, mensagemDe } from "../../../api";
 import { ProvedorMapa } from "../../../componentes/mapa/provedor-mapa";
@@ -43,6 +43,18 @@ export function FormularioPonto({
       .join(", ");
   }
 
+  /** Os campos do endereço como estão agora no formulário (para o Nominatim, que busca por partes). */
+  function enderecoBusca(): EnderecoBusca {
+    const dados = new FormData(formulario.current!);
+    const t = (c: string) => String(dados.get(c) ?? "").trim();
+    return { logradouro: t("logradouro"), numero: t("numero"), bairro: t("bairro"), cidade: t("cidade"), uf: t("uf"), cep: t("cep") };
+  }
+
+  function aoMudarLocalizacao(novas: Coordenadas, status: StatusLocalizacao | "automatica" | "ajustada") {
+    setCoordenadas(novas);
+    setStatusLocal(status);
+  }
+
   async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setEnviando(true);
@@ -61,8 +73,6 @@ export function FormularioPonto({
       setEnviando(false);
     }
   }
-
-  const Seletor = mapa.provedor === "osm" ? SeletorOsm : SeletorLocalizacao;
 
   return (
     <form ref={formulario} onSubmit={aoEnviar} className="flex max-w-3xl flex-col gap-5">
@@ -104,15 +114,11 @@ export function FormularioPonto({
       <Cartao className="flex flex-col gap-3">
         <h2 className="font-titulo text-lg font-bold">Localização no mapa</h2>
         <ProvedorMapa config={mapa} altura="h-48">
-          <Seletor
-            slug={mapa.slug}
-            coordenadas={coordenadas}
-            enderecoAtual={enderecoAtual}
-            aoMudar={(novas, status) => {
-              setCoordenadas(novas);
-              setStatusLocal(status);
-            }}
-          />
+          {mapa.provedor === "osm" ? (
+            <SeletorOsm slug={mapa.slug} coordenadas={coordenadas} enderecoBusca={enderecoBusca} aoMudar={aoMudarLocalizacao} />
+          ) : (
+            <SeletorLocalizacao slug={mapa.slug} coordenadas={coordenadas} enderecoAtual={enderecoAtual} aoMudar={aoMudarLocalizacao} />
+          )}
         </ProvedorMapa>
       </Cartao>
 
