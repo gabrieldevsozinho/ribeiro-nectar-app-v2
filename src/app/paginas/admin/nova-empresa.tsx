@@ -65,7 +65,7 @@ function FormularioNovaEmpresa({ aoRecomecar }: { aoRecomecar: () => void }) {
 
       <Cartao className="flex flex-col gap-4">
         <h2 className="font-titulo text-lg font-bold">Empresa</h2>
-        <Campo rotulo="Nome da empresa" name="nome" required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Apiário Ribeiro" />
+        <Campo rotulo="Nome da empresa" name="nome" required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Apiário Exemplo" />
         <Campo
           rotulo="Endereço no sistema"
           name="slug"
@@ -89,7 +89,7 @@ function FormularioNovaEmpresa({ aoRecomecar }: { aoRecomecar: () => void }) {
 
       <Cartao className="flex flex-col gap-4">
         <h2 className="font-titulo text-lg font-bold">Master inicial</h2>
-        <Campo rotulo="Nome" name="master_nome" required placeholder="Lucas Ribeiro" />
+        <Campo rotulo="Nome" name="master_nome" required placeholder="Maria Souza" />
         <div className="grid gap-4 sm:grid-cols-2">
           <Campo rotulo="E-mail" name="master_email" type="email" required />
           <Campo rotulo="Telefone (opcional)" name="master_telefone" type="tel" />

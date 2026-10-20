@@ -6,18 +6,21 @@ import type { UltimaEmpresa } from "@/compartilhado/tipos";
 import { api } from "../api";
 import { Marca } from "../componentes/marca";
 import { IconeAlerta, IconeLoja, IconeMapa, IconePessoas, IconePote, IconeVendas } from "../componentes/icones";
-import { Botao, BotaoLink, Carregando, useTitulo } from "../componentes/ui";
+import { Botao, Carregando, useTitulo } from "../componentes/ui";
 
 export default function PaginaInicial() {
   useTitulo("");
   const [busca] = useSearchParams();
+  // App instalado (start_url "/?origem=app"): abre direto na última empresa usada neste aparelho.
+  // Essa informação nunca aparece na página pública: a página só apresenta o serviço.
+  const abrindoComoApp = busca.get("origem") === "app";
   const ultima = useQuery({
     queryKey: ["publico", "ultima-empresa"],
     queryFn: () => api.get<UltimaEmpresa>("/api/publico/ultima-empresa"),
+    enabled: abrindoComoApp,
   });
 
-  // App instalado (start_url "/?origem=app"): abre direto na última empresa usada neste aparelho.
-  if (busca.get("origem") === "app") {
+  if (abrindoComoApp) {
     if (ultima.isPending) return <Carregando />;
     if (ultima.data) return <Navigate to={`/${ultima.data.slug}`} replace />;
   }
@@ -25,12 +28,12 @@ export default function PaginaInicial() {
   return (
     <div className="min-h-dvh">
       <Cabecalho />
-      <Heroi ultima={ultima.data ?? null} />
+      <Heroi />
       <Numeros />
       <Recursos />
       <ComoFunciona />
       <Confianca />
-      <ChamadaFinal ultima={ultima.data ?? null} />
+      <ChamadaFinal />
       <Rodape />
     </div>
   );
@@ -63,7 +66,7 @@ function Cabecalho() {
   );
 }
 
-function Heroi({ ultima }: { ultima: UltimaEmpresa }) {
+function Heroi() {
   return (
     <section className="mx-auto grid max-w-6xl gap-12 px-5 py-14 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center md:gap-10 md:px-8 md:py-20">
       <div>
@@ -80,7 +83,7 @@ function Heroi({ ultima }: { ultima: UltimaEmpresa }) {
             href="#acessar"
             className="inline-flex min-h-12 items-center justify-center rounded-xl bg-mel px-6 text-base font-semibold text-sobre-mel transition-colors hover:bg-mel-forte"
           >
-            {ultima ? `Continuar em ${ultima.nome}` : "Acessar minha empresa"}
+            Acessar minha empresa
           </a>
           <a href="#como-funciona" className="inline-flex min-h-12 items-center px-3 text-base font-semibold text-texto-2 hover:text-texto">
             Ver como funciona →
@@ -110,13 +113,13 @@ function MockupCelular() {
       <div className="overflow-hidden rounded-[1.6rem] bg-fundo">
         <div className="flex h-12 items-center justify-between border-b border-borda px-4">
           <span className="text-sm font-bold">Nova venda</span>
-          <span className="text-xs text-texto-3">Apiário Ribeiro</span>
+          <span className="text-xs text-texto-3">Sua empresa</span>
         </div>
         <div className="flex flex-col gap-3 p-3.5">
           <div className="rounded-xl bg-mel-claro px-3 py-2.5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-mel-texto">1. Onde foi a venda?</p>
-            <p className="mt-0.5 text-sm font-semibold">Empório Bela Vista</p>
-            <p className="text-xs text-texto-2">Rua Garibaldi, 1020 · Ribeirão Preto/SP</p>
+            <p className="mt-0.5 text-sm font-semibold">Empório do Bairro</p>
+            <p className="text-xs text-texto-2">Rua das Flores, 120 · Sua Cidade/UF</p>
           </div>
           <div className="rounded-xl border border-borda bg-superficie">
             <p className="px-3 pt-2.5 text-[11px] font-semibold uppercase tracking-wide text-texto-3">2. O que foi vendido?</p>
@@ -297,7 +300,7 @@ function Confianca() {
   );
 }
 
-function ChamadaFinal({ ultima }: { ultima: UltimaEmpresa }) {
+function ChamadaFinal() {
   return (
     <section id="acessar" className="scroll-mt-20 border-t border-borda bg-mel-claro">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:items-center md:px-8 md:py-20">
@@ -310,11 +313,6 @@ function ChamadaFinal({ ultima }: { ultima: UltimaEmpresa }) {
         <div className="w-full rounded-[var(--radius-cartao)] border border-borda bg-superficie p-6 shadow-sm">
           <h3 className="font-titulo text-xl font-bold">Acessar minha empresa</h3>
           <p className="mt-1 text-sm text-texto-2">Digite o endereço da sua empresa no Ribeiro Néctar.</p>
-          {ultima && (
-            <BotaoLink to={`/${ultima.slug}`} className="mt-5 w-full">
-              Continuar em {ultima.nome}
-            </BotaoLink>
-          )}
           <IrParaEmpresa />
         </div>
       </div>

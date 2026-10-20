@@ -117,7 +117,7 @@ export async function criarEmpresa(
 ): Promise<ResultadoAcao> {
   if (dados.nome.length < 2) throw new ErroDeNegocio("Informe o nome da empresa.");
   if (!slugValido(dados.slug)) {
-    throw new ErroDeNegocio("Endereço inválido: use de 3 a 60 letras minúsculas, números e hífens (ex.: apiario-ribeiro).");
+    throw new ErroDeNegocio("Endereço inválido: use de 3 a 60 letras minúsculas, números e hífens (ex.: apiario-exemplo).");
   }
   const limites = lerLimites(dados);
   const problemaMaster = validarNovoUsuario({ ...dados.master, senhaTemporaria: dados.master.senha });

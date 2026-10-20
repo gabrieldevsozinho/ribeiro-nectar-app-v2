@@ -6,7 +6,7 @@ export const SLUG_VALIDO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export const SLUGS_RESERVADOS = new Set(["admin", "api", "login", "sair", "static", "public", "assets", "favicon-ico", "icones"]);
 
-/** "Apiário Ribeiro" → "apiario-ribeiro" */
+/** "Apiário Exemplo" → "apiario-exemplo" */
 export function normalizarSlug(texto: string): string {
   return texto
     .normalize("NFD")

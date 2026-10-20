@@ -39,7 +39,7 @@ function Raiz() {
 /**
  * Endereços (iguais aos do projeto original):
  *   /admin/...                  painel da plataforma
- *   /:slug/login, /:slug/...    área de cada empresa (ex.: /apiario-ribeiro/vendas)
+ *   /:slug/login, /:slug/...    área de cada empresa (ex.: /apiario-exemplo/vendas)
  */
 export const rotas: RouteObject[] = [
   {
