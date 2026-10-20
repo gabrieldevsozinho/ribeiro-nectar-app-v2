@@ -26,7 +26,7 @@ export default function PaginaInicial() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh overflow-x-clip">
       <Cabecalho />
       <Heroi />
       <Numeros />
@@ -42,7 +42,7 @@ export default function PaginaInicial() {
 function Cabecalho() {
   return (
     <header className="sticky top-0 z-30 border-b border-borda bg-fundo/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 md:px-8">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5 md:h-16 md:px-8">
         <Marca />
         <nav className="hidden items-center gap-6 text-sm font-semibold text-texto-2 md:flex" aria-label="Seções da página">
           <a href="#recursos" className="hover:text-texto">
@@ -68,28 +68,28 @@ function Cabecalho() {
 
 function Heroi() {
   return (
-    <section className="mx-auto grid max-w-6xl gap-12 px-5 py-14 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center md:gap-10 md:px-8 md:py-20">
+    <section className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 px-4 py-8 sm:px-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center md:gap-10 md:px-8 md:py-20">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-mel-texto">Gestão de vendas para empresas de mel</p>
-        <h1 className="mt-3 font-titulo text-4xl font-extrabold leading-[1.06] tracking-tight md:text-[3.4rem]">
+        <h1 className="mt-3 font-titulo text-[2rem] font-extrabold leading-[1.08] tracking-tight sm:text-4xl md:text-[3.4rem]">
           Saiba o que foi vendido, quando, para quem e por quem.
         </h1>
-        <p className="mt-5 max-w-xl text-lg text-texto-2">
+        <p className="mt-4 max-w-xl text-base text-texto-2 sm:text-lg md:mt-5">
           Seus revendedores registram cada venda pelo celular, em poucos toques. Você acompanha tudo num só lugar, com o mapa dos
           comércios que sua empresa atende.
         </p>
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <div className="mt-6 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 md:mt-7">
           <a
             href="#acessar"
-            className="inline-flex min-h-12 items-center justify-center rounded-xl bg-mel px-6 text-base font-semibold text-sobre-mel transition-colors hover:bg-mel-forte"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-mel px-6 text-base font-semibold text-sobre-mel transition-colors hover:bg-mel-forte sm:w-auto"
           >
             Acessar minha empresa
           </a>
-          <a href="#como-funciona" className="inline-flex min-h-12 items-center px-3 text-base font-semibold text-texto-2 hover:text-texto">
+          <a href="#como-funciona" className="inline-flex min-h-12 items-center justify-center px-3 text-base font-semibold text-texto-2 hover:text-texto sm:justify-start">
             Ver como funciona →
           </a>
         </div>
-        <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-texto-2">
+        <ul className="mt-6 flex flex-col gap-2 text-sm text-texto-2 sm:flex-row sm:flex-wrap sm:gap-x-6 md:mt-8">
           {["Funciona no celular, sem instalar nada da loja", "Cada empresa vê só os próprios dados", "Histórico de vendas que ninguém apaga"].map((t) => (
             <li key={t} className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-mel" />
@@ -98,7 +98,7 @@ function Heroi() {
           ))}
         </ul>
       </div>
-      <div className="relative mx-auto w-full max-w-md md:max-w-none">
+      <div className="relative mx-auto w-full min-w-0 max-w-md md:max-w-none">
         <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-mel-claro opacity-70 blur-2xl" aria-hidden="true" />
         <MockupCelular />
       </div>
@@ -109,7 +109,7 @@ function Heroi() {
 /** Tela de "Nova venda" desenhada em HTML: mostra o que o revendedor vê no celular. */
 function MockupCelular() {
   return (
-    <div className="mx-auto w-[19rem] rounded-[2.2rem] border-[10px] border-texto bg-texto p-0 shadow-2xl md:w-[20rem]" aria-hidden="true">
+    <div className="mx-auto w-full max-w-[19rem] rounded-[2.2rem] border-[10px] border-texto bg-texto p-0 shadow-2xl md:max-w-[20rem]" aria-hidden="true">
       <div className="overflow-hidden rounded-[1.6rem] bg-fundo">
         <div className="flex h-12 items-center justify-between border-b border-borda px-4">
           <span className="text-sm font-bold">Nova venda</span>
@@ -156,10 +156,10 @@ function Numeros() {
   ];
   return (
     <section className="border-y border-borda bg-superficie">
-      <dl className="mx-auto grid max-w-6xl gap-6 px-5 py-8 text-center sm:grid-cols-3 md:px-8">
+      <dl className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 py-7 text-center sm:grid-cols-3 sm:gap-6 sm:px-5 md:px-8">
         {itens.map(([numero, texto]) => (
           <div key={numero}>
-            <dt className="font-titulo text-3xl font-extrabold text-mel-texto">{numero}</dt>
+            <dt className="font-titulo text-2xl font-extrabold text-mel-texto sm:text-3xl">{numero}</dt>
             <dd className="mt-1 text-sm text-texto-2">{texto}</dd>
           </div>
         ))}
@@ -202,17 +202,17 @@ function Recursos() {
     },
   ];
   return (
-    <section id="recursos" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
+    <section id="recursos" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-12 sm:px-5 md:scroll-mt-20 md:px-8 md:py-24">
       <div className="max-w-2xl">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-mel-texto">O que faz</p>
-        <h2 className="mt-2 font-titulo text-3xl font-extrabold tracking-tight md:text-4xl">
+        <h2 className="mt-2 font-titulo text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
           Tudo o que a venda de mel precisa, sem planilha
         </h2>
-        <p className="mt-3 text-lg text-texto-2">Do balcão do revendedor ao painel do dono, com as mesmas informações para todo mundo.</p>
+        <p className="mt-3 text-base text-texto-2 sm:text-lg">Do balcão do revendedor ao painel do dono, com as mesmas informações para todo mundo.</p>
       </div>
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:mt-10 lg:grid-cols-3">
         {recursos.map((r) => (
-          <li key={r.titulo} className="rounded-[var(--radius-cartao)] border border-borda bg-superficie p-6">
+          <li key={r.titulo} className="rounded-[var(--radius-cartao)] border border-borda bg-superficie p-5 sm:p-6">
             <span className="flex size-11 items-center justify-center rounded-xl bg-mel-claro text-mel-texto">{r.icone}</span>
             <h3 className="mt-4 font-titulo text-lg font-bold">{r.titulo}</h3>
             <p className="mt-1.5 text-[15px] leading-relaxed text-texto-2">{r.texto}</p>
@@ -230,13 +230,13 @@ function ComoFunciona() {
     ["3", "A equipe vende e você acompanha", "As vendas entram pelo celular. O master vê tudo por data, vendedor e cidade, e no mapa."],
   ];
   return (
-    <section id="como-funciona" className="scroll-mt-20 border-y border-borda bg-superficie">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+    <section id="como-funciona" className="scroll-mt-16 border-y border-borda bg-superficie md:scroll-mt-20">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-5 md:px-8 md:py-24">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-mel-texto">Como funciona</p>
-        <h2 className="mt-2 font-titulo text-3xl font-extrabold tracking-tight md:text-4xl">Do cadastro à primeira venda</h2>
-        <ol className="mt-10 grid gap-6 md:grid-cols-3">
+        <h2 className="mt-2 font-titulo text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">Do cadastro à primeira venda</h2>
+        <ol className="mt-8 grid grid-cols-1 gap-3 sm:gap-4 md:mt-10 md:grid-cols-3 md:gap-6">
           {passos.map(([n, titulo, texto]) => (
-            <li key={n} className="relative rounded-[var(--radius-cartao)] border border-borda bg-fundo p-6">
+            <li key={n} className="relative rounded-[var(--radius-cartao)] border border-borda bg-fundo p-5 sm:p-6">
               <span className="flex size-10 items-center justify-center rounded-full bg-mel font-titulo text-lg font-extrabold text-sobre-mel">{n}</span>
               <h3 className="mt-4 font-titulo text-lg font-bold">{titulo}</h3>
               <p className="mt-1.5 text-[15px] leading-relaxed text-texto-2">{texto}</p>
@@ -244,8 +244,8 @@ function ComoFunciona() {
           ))}
         </ol>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-2">
-          <div className="rounded-[var(--radius-cartao)] border border-borda bg-fundo p-6">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:gap-4 md:mt-12 md:grid-cols-2">
+          <div className="rounded-[var(--radius-cartao)] border border-borda bg-fundo p-5 sm:p-6">
             <h3 className="font-titulo text-lg font-bold">Master</h3>
             <p className="mt-1 text-sm text-texto-2">O responsável pela empresa</p>
             <ul className="mt-4 flex flex-col gap-2 text-[15px]">
@@ -257,7 +257,7 @@ function ComoFunciona() {
               ))}
             </ul>
           </div>
-          <div className="rounded-[var(--radius-cartao)] border border-borda bg-fundo p-6">
+          <div className="rounded-[var(--radius-cartao)] border border-borda bg-fundo p-5 sm:p-6">
             <h3 className="font-titulo text-lg font-bold">Revendedor</h3>
             <p className="mt-1 text-sm text-texto-2">Quem vende na rua</p>
             <ul className="mt-4 flex flex-col gap-2 text-[15px]">
@@ -283,14 +283,14 @@ function Confianca() {
     ["Instala como aplicativo", "No celular, dá para adicionar à tela inicial e abrir direto na sua empresa, sem passar por loja de aplicativos."],
   ];
   return (
-    <section id="seguranca" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:px-8 md:py-24">
+    <section id="seguranca" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-12 sm:px-5 md:scroll-mt-20 md:px-8 md:py-24">
       <div className="max-w-2xl">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-mel-texto">Segurança</p>
-        <h2 className="mt-2 font-titulo text-3xl font-extrabold tracking-tight md:text-4xl">Feito para guardar o que importa</h2>
+        <h2 className="mt-2 font-titulo text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">Feito para guardar o que importa</h2>
       </div>
-      <dl className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+      <dl className="mt-8 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-8 md:mt-10">
         {itens.map(([titulo, texto]) => (
-          <div key={titulo} className="border-l-2 border-mel pl-5">
+          <div key={titulo} className="border-l-2 border-mel pl-4 sm:pl-5">
             <dt className="font-titulo text-lg font-bold">{titulo}</dt>
             <dd className="mt-1 text-[15px] leading-relaxed text-texto-2">{texto}</dd>
           </div>
@@ -302,15 +302,15 @@ function Confianca() {
 
 function ChamadaFinal() {
   return (
-    <section id="acessar" className="scroll-mt-20 border-t border-borda bg-mel-claro">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:items-center md:px-8 md:py-20">
+    <section id="acessar" className="scroll-mt-14 border-t border-borda bg-mel-claro md:scroll-mt-16">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8 px-4 py-12 sm:px-5 md:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] md:items-center md:gap-10 md:px-8 md:py-20">
         <div>
-          <h2 className="font-titulo text-3xl font-extrabold tracking-tight md:text-4xl">Pronto para acompanhar suas vendas?</h2>
-          <p className="mt-3 max-w-lg text-lg text-texto-2">
-            Já tem acesso? Digite o endereço da sua empresa ao lado. Quer o sistema para a sua empresa? Fale com a Gabriel Studio.
+          <h2 className="font-titulo text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">Pronto para acompanhar suas vendas?</h2>
+          <p className="mt-3 max-w-lg text-base text-texto-2 sm:text-lg">
+            Já tem acesso? Digite o endereço da sua empresa. Quer o sistema para a sua empresa? Fale com a Gabriel Studio.
           </p>
         </div>
-        <div className="w-full rounded-[var(--radius-cartao)] border border-borda bg-superficie p-6 shadow-sm">
+        <div className="w-full min-w-0 rounded-[var(--radius-cartao)] border border-borda bg-superficie p-5 shadow-sm sm:p-6">
           <h3 className="font-titulo text-xl font-bold">Acessar minha empresa</h3>
           <p className="mt-1 text-sm text-texto-2">Digite o endereço da sua empresa no Ribeiro Néctar.</p>
           <IrParaEmpresa />
@@ -323,7 +323,7 @@ function ChamadaFinal() {
 function Rodape() {
   return (
     <footer className="border-t border-borda bg-superficie">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-6 text-sm text-texto-3 md:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col items-start gap-3 px-4 py-6 text-sm text-texto-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5 md:px-8">
         <Marca tamanho="p" />
         <span>Desenvolvido por Gabriel Studio</span>
       </div>
@@ -347,8 +347,8 @@ function IrParaEmpresa() {
       <label htmlFor="empresa" className="text-sm font-semibold">
         Endereço da empresa
       </label>
-      <div className="flex min-h-11 items-center overflow-hidden rounded-xl border border-borda-forte bg-superficie focus-within:border-mel">
-        <span className="pl-3.5 text-base text-texto-3 md:text-[15px]">ribeironectar.com.br/</span>
+      <div className="flex min-h-11 min-w-0 items-center overflow-hidden rounded-xl border border-borda-forte bg-superficie focus-within:border-mel">
+        <span className="shrink-0 pl-3.5 text-sm text-texto-3 sm:text-base md:text-[15px]">ribeironectar.com.br/</span>
         <input
           id="empresa"
           value={valor}
@@ -357,7 +357,7 @@ function IrParaEmpresa() {
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          className="min-w-0 flex-1 bg-transparent py-2 pr-3 text-base outline-none md:text-[15px]"
+          className="w-0 min-w-0 flex-1 bg-transparent py-2 pr-3 text-base outline-none md:text-[15px]"
         />
       </div>
       <Botao type="submit" disabled={!slug}>
