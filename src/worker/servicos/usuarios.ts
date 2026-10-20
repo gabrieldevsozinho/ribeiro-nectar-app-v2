@@ -18,7 +18,7 @@ export type NovoUsuario = {
 
 export type ResultadoCriacao = { ok: true; perfilId: string } | { ok: false; erro: string };
 
-const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Confere os dados antes de criar o login. Devolve a primeira mensagem de erro. */
 export function validarNovoUsuario(dados: { nome: string; email: string; senhaTemporaria: string }): string | null {

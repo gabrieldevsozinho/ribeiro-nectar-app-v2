@@ -1,9 +1,18 @@
 /** Painel do administrador da plataforma. */
 import { Hono } from "hono";
-import { esquemaAlterarEmpresa, esquemaAtivo, esquemaNovaEmpresa, esquemaNovoUsuario } from "@/compartilhado/esquemas";
+import { esquemaAlterarEmpresa, esquemaAtivo, esquemaEditarMaster, esquemaNovaEmpresa, esquemaNovoUsuario } from "@/compartilhado/esquemas";
 import { exigirAdmin } from "../acesso";
 import { validar } from "../erros";
-import { adicionarMaster, alterarEmpresa, criarEmpresa, definirEmpresaAtiva, listarEmpresas, obterEmpresa } from "../servicos/empresas";
+import {
+  adicionarMaster,
+  alterarEmpresa,
+  alterarMaster,
+  criarEmpresa,
+  definirEmpresaAtiva,
+  excluirMaster,
+  listarEmpresas,
+  obterEmpresa,
+} from "../servicos/empresas";
 import { UUID } from "../servicos/vendas";
 import type { AppEnv } from "../tipos";
 
@@ -26,4 +35,10 @@ export const rotasAdmin = new Hono<AppEnv>()
   )
   .post("/empresas/:id/masters", validar("json", esquemaNovoUsuario.omit({ endereco: true })), async (c) =>
     c.json(await adicionarMaster(c.get("db"), c.get("auth"), c.req.param("id"), c.req.valid("json"))),
+  )
+  .put("/empresas/:id/masters/:perfilId", validar("json", esquemaEditarMaster), async (c) =>
+    c.json(await alterarMaster(c.get("db"), c.get("auth"), c.req.param("id"), c.req.param("perfilId"), c.req.valid("json"))),
+  )
+  .delete("/empresas/:id/masters/:perfilId", async (c) =>
+    c.json({ sucesso: await excluirMaster(c.get("db"), c.get("auth"), c.req.param("id"), c.req.param("perfilId")) }),
   );

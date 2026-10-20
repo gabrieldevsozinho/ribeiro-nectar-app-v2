@@ -3,14 +3,22 @@
  * Por LGPD, o admin vê empresas, limites, masters e o status do Google Maps,
  * mas nenhuma venda, nenhum revendedor e nenhuma chave.
  */
-import { and, asc, count, eq, isNull, isNotNull } from "drizzle-orm";
+import { and, asc, count, eq, isNull, isNotNull, sql } from "drizzle-orm";
+import { validarSenha } from "@/compartilhado/senha";
 import { slugValido } from "@/compartilhado/slug";
 import type { EmpresaDetalhe, EmpresaResumo, ResultadoAcao } from "@/compartilhado/tipos";
 import type { Auth } from "../auth/auth";
 import type { Db } from "../db/cliente";
-import { empresas, googleMapsEmpresa, perfis } from "../db/esquema";
+import { authUsuarios, empresas, googleMapsEmpresa, perfis } from "../db/esquema";
 import { ErroDeNegocio, mensagemErroBanco } from "../erros";
-import { contarUsuarios, criarUsuarioComSenhaTemporaria, validarNovoUsuario } from "./usuarios";
+import {
+  EMAIL_VALIDO,
+  apagarLogin,
+  contarUsuarios,
+  criarUsuarioComSenhaTemporaria,
+  encerrarSessoesDoUsuario,
+  validarNovoUsuario,
+} from "./usuarios";
 
 const CAMPOS_MAPS = { status: googleMapsEmpresa.status, validadaEm: googleMapsEmpresa.validadaEm, ultimoErro: googleMapsEmpresa.ultimoErro };
 
@@ -197,4 +205,112 @@ export async function adicionarMaster(
   });
   if (!resultado.ok) throw new ErroDeNegocio(resultado.erro);
   return { sucesso: `Master ${dados.nome} cadastrado.`, credencial: { email: dados.email, senha: dados.senha } };
+}
+
+/** Busca o master garantindo que ele é da empresa e não foi excluído. */
+async function masterDaEmpresa(db: Db, empresaId: string, perfilId: string) {
+  return db
+    .select({ id: perfis.id, userId: perfis.userId, nome: perfis.nome, email: perfis.email })
+    .from(perfis)
+    .where(and(eq(perfis.id, perfilId), eq(perfis.empresaId, empresaId), eq(perfis.papel, "master"), isNull(perfis.excluidoEm)))
+    .get();
+}
+
+/**
+ * Altera nome, e-mail e telefone de um master e, se o admin informar, define uma nova senha temporária.
+ *
+ * As vendas, os pontos e tudo que o master cadastrou apontam para o cadastro dele (perfis.id), não para o
+ * e-mail nem para a senha: trocar esses dados não afasta nada do histórico. O e-mail é atualizado nos dois
+ * lugares em que existe (o perfil e o login), na mesma gravação.
+ * Trocar o e-mail ou a senha derruba as sessões abertas dele; a nova senha é temporária (ele troca no próximo acesso).
+ */
+export async function alterarMaster(
+  db: Db,
+  auth: Auth,
+  empresaId: string,
+  perfilId: string,
+  dados: { nome: string; email: string; telefone: string; senha: string },
+): Promise<ResultadoAcao> {
+  const master = await masterDaEmpresa(db, empresaId, perfilId);
+  if (!master) throw new ErroDeNegocio("Master não encontrado.");
+
+  const email = dados.email.trim().toLowerCase();
+  if (dados.nome.length < 2) throw new ErroDeNegocio("Informe o nome.");
+  if (!EMAIL_VALIDO.test(email)) throw new ErroDeNegocio("Informe um e-mail válido.");
+  if (dados.senha) {
+    const problema = validarSenha(dados.senha);
+    if (problema) throw new ErroDeNegocio(problema);
+  }
+
+  const trocouEmail = email !== (master.email ?? "").toLowerCase();
+  if (trocouEmail) {
+    const emUso = await db
+      .select({ id: authUsuarios.id })
+      .from(authUsuarios)
+      .where(sql`lower(${authUsuarios.email}) = ${email}`)
+      .get();
+    if (emUso && emUso.id !== master.userId) throw new ErroDeNegocio("Já existe um usuário com este e-mail.");
+  }
+
+  try {
+    const perfilAtualizado = db
+      .update(perfis)
+      .set({ nome: dados.nome, email, telefone: dados.telefone || null, ...(dados.senha ? { deveTrocarSenha: true } : {}) })
+      .where(eq(perfis.id, perfilId));
+    if (master.userId) {
+      // Perfil e login são gravados juntos: ou muda o e-mail dos dois, ou de nenhum.
+      await db.batch([
+        perfilAtualizado,
+        db.update(authUsuarios).set({ name: dados.nome, email, updatedAt: new Date() }).where(eq(authUsuarios.id, master.userId)),
+      ]);
+    } else {
+      await perfilAtualizado;
+    }
+  } catch (erro) {
+    throw new ErroDeNegocio(mensagemErroBanco(erro));
+  }
+
+  if (master.userId && (trocouEmail || dados.senha)) {
+    if (dados.senha) {
+      const contexto = await auth.$context;
+      await contexto.internalAdapter.updatePassword(master.userId, await contexto.password.hash(dados.senha));
+    }
+    await encerrarSessoesDoUsuario(auth, master.userId);
+  }
+
+  return dados.senha
+    ? { sucesso: `Dados de ${dados.nome} salvos e nova senha temporária definida.`, credencial: { email, senha: dados.senha } }
+    : { sucesso: `Dados de ${dados.nome} salvos.` };
+}
+
+/**
+ * Exclui um master: o login é apagado e os dados pessoais são removidos, mas o cadastro fica como
+ * "Master removido" para as vendas e os pontos dele continuarem no histórico. Como as vendas de um master
+ * só aparecem para os outros se ele compartilha, a exclusão liga o compartilhamento: senão elas sumiriam.
+ * A empresa nunca fica sem master.
+ */
+export async function excluirMaster(db: Db, auth: Auth, empresaId: string, perfilId: string) {
+  const master = await masterDaEmpresa(db, empresaId, perfilId);
+  if (!master) throw new ErroDeNegocio("Master não encontrado.");
+
+  const emUso = await contarUsuarios(db, empresaId);
+  if (emUso.masters <= 1) {
+    throw new ErroDeNegocio("A empresa precisa ter pelo menos 1 master. Cadastre outro antes de excluir este.");
+  }
+
+  await db
+    .update(perfis)
+    .set({
+      nome: "Master removido",
+      email: null,
+      telefone: null,
+      endereco: null,
+      bloqueado: true,
+      compartilhaVendas: true,
+      excluidoEm: new Date().toISOString(),
+    })
+    .where(eq(perfis.id, perfilId));
+  if (master.userId) await apagarLogin(auth, master.userId);
+
+  return `${master.nome} foi excluído. As vendas dele continuam no histórico, como “Master removido”.`;
 }

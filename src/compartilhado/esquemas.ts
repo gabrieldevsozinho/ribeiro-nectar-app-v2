@@ -91,6 +91,14 @@ export const esquemaNovoUsuario = z.object({
   senha: z.string().max(128),
 });
 
+/** Edição de um master pelo admin: a senha é opcional (em branco, a senha atual continua). */
+export const esquemaEditarMaster = z.object({
+  nome: texto(120),
+  email: texto(254).toLowerCase(),
+  telefone: opcional(40),
+  senha: z.string().max(128).default(""),
+});
+
 export const esquemaNovaEmpresa = z.object({
   nome: texto(120),
   slug: texto(60).toLowerCase(),

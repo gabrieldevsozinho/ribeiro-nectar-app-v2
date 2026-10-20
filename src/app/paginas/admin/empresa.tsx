@@ -83,19 +83,7 @@ export default function PaginaEmpresa() {
         <h2 className="font-titulo text-lg font-bold">Masters</h2>
         <ul className="mt-3 divide-y divide-borda">
           {empresa.masters.map((m) => (
-            <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-              <div className="min-w-0">
-                <p className="font-semibold">{m.nome}</p>
-                <p className="text-sm text-texto-2 break-all">
-                  {m.email}
-                  {m.telefone && ` · ${m.telefone}`}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {m.bloqueado && <Selo tipo="erro">Bloqueado</Selo>}
-                {m.deveTrocarSenha && <Selo tipo="alerta">Ainda não fez o primeiro acesso</Selo>}
-              </div>
-            </li>
+            <LinhaMaster key={m.id} empresaId={empresa.id} master={m} podeExcluir={empresa.emUso.masters > 1} />
           ))}
         </ul>
 
@@ -110,6 +98,123 @@ export default function PaginaEmpresa() {
         </div>
       </Cartao>
     </>
+  );
+}
+
+type Master = EmpresaDetalhe["masters"][number];
+
+/**
+ * Um master da empresa, com "Editar" e "Excluir". As vendas e tudo que ele cadastrou continuam
+ * ligados ao cadastro dele: trocar e-mail ou senha não afasta nada do histórico.
+ */
+function LinhaMaster({ empresaId, master, podeExcluir }: { empresaId: string; master: Master; podeExcluir: boolean }) {
+  const [editando, setEditando] = useState(false);
+  const salvar = useMutation({
+    mutationFn: (d: Record<string, string>) => api.put<ResultadoAcao>(`/api/admin/empresas/${empresaId}/masters/${master.id}`, d),
+    onSuccess: async (resposta) => {
+      await recarregar();
+      // Com senha nova, a tela continua aberta mostrando os dados do login (aparecem uma única vez).
+      if (!resposta.credencial) setEditando(false);
+    },
+  });
+  const excluir = useMutation({
+    mutationFn: () => api.delete<{ sucesso: string }>(`/api/admin/empresas/${empresaId}/masters/${master.id}`),
+    onSuccess: recarregar,
+  });
+
+  if (editando) {
+    if (salvar.data?.credencial) {
+      return (
+        <li className="flex max-w-xl flex-col gap-3 py-3">
+          <CredencialCriada titulo={salvar.data.sucesso ?? "Master atualizado"} {...salvar.data.credencial} />
+          <div>
+            <Botao
+              type="button"
+              variante="secundario"
+              onClick={() => {
+                salvar.reset();
+                setEditando(false);
+              }}
+            >
+              Fechar
+            </Botao>
+          </div>
+        </li>
+      );
+    }
+    return (
+      <li className="py-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            salvar.mutate(lerFormulario(e.currentTarget));
+          }}
+          className="flex max-w-xl flex-col gap-4"
+        >
+          <h3 className="font-semibold">Editar {master.nome}</h3>
+          {salvar.isError && <Aviso tipo="erro">{salvar.error.message}</Aviso>}
+          <Campo rotulo="Nome" name="nome" defaultValue={master.nome} required />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Campo rotulo="E-mail" name="email" type="email" defaultValue={master.email ?? ""} required />
+            <Campo rotulo="Telefone (opcional)" name="telefone" type="tel" defaultValue={master.telefone ?? ""} />
+          </div>
+          <Aviso tipo="info">
+            Trocar o e-mail ou a senha desconecta o master de onde ele estiver logado. As vendas e os cadastros dele continuam no
+            sistema, ligados a ele.
+          </Aviso>
+          <CampoSenhaTemporaria rotulo="Nova senha temporária (deixe em branco para manter a atual)" obrigatorio={false} />
+          <div className="flex gap-2">
+            <Botao type="submit" disabled={salvar.isPending}>
+              {salvar.isPending ? "Salvando…" : "Salvar"}
+            </Botao>
+            <Botao
+              type="button"
+              variante="fantasma"
+              onClick={() => {
+                salvar.reset();
+                setEditando(false);
+              }}
+            >
+              Cancelar
+            </Botao>
+          </div>
+        </form>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+      <div className="min-w-0">
+        <p className="font-semibold">{master.nome}</p>
+        <p className="text-sm text-texto-2 break-all">
+          {master.email}
+          {master.telefone && ` · ${master.telefone}`}
+        </p>
+        {excluir.isError && <p className="text-sm text-erro">{excluir.error.message}</p>}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {master.bloqueado && <Selo tipo="erro">Bloqueado</Selo>}
+        {master.deveTrocarSenha && <Selo tipo="alerta">Ainda não fez o primeiro acesso</Selo>}
+        <Botao type="button" variante="fantasma" className="min-h-9 px-3 text-sm" onClick={() => setEditando(true)}>
+          Editar
+        </Botao>
+        <Botao
+          type="button"
+          variante="fantasma"
+          className="min-h-9 px-3 text-sm text-erro"
+          disabled={excluir.isPending || !podeExcluir}
+          title={podeExcluir ? undefined : "A empresa precisa ter pelo menos 1 master"}
+          onClick={() => {
+            if (window.confirm(`Excluir ${master.nome}? O login é apagado; as vendas dele continuam no histórico como “Master removido”.`)) {
+              excluir.mutate();
+            }
+          }}
+        >
+          {excluir.isPending ? "Excluindo…" : "Excluir"}
+        </Botao>
+      </div>
+    </li>
   );
 }
 

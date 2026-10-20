@@ -4,7 +4,15 @@ import type { Credencial } from "@/compartilhado/tipos";
 import { Aviso } from "./ui";
 
 /** Campo de senha temporária com botão para gerar uma senha fácil de ditar. */
-export function CampoSenhaTemporaria({ name = "senha", rotulo = "Senha temporária" }: { name?: string; rotulo?: string }) {
+export function CampoSenhaTemporaria({
+  name = "senha",
+  rotulo = "Senha temporária",
+  obrigatorio = true,
+}: {
+  name?: string;
+  rotulo?: string;
+  obrigatorio?: boolean;
+}) {
   const [valor, setValor] = useState("");
 
   return (
@@ -18,7 +26,7 @@ export function CampoSenhaTemporaria({ name = "senha", rotulo = "Senha temporár
           name={name}
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          required
+          required={obrigatorio}
           minLength={8}
           autoComplete="off"
           spellCheck={false}
