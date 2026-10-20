@@ -14,9 +14,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ribeiro-nectar",
-      // Troque pelo id que o comando `npx wrangler d1 create ribeiro-nectar` mostrar.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "banco-ribeiro-nectar",
+      "database_id": "f8c30fea-81b6-4937-8fec-03941d3d19b4",
       "migrations_dir": "drizzle/migracoes"
     }
   ],
@@ -26,10 +25,12 @@
   // "r2_buckets": [{ "binding": "ARQUIVOS", "bucket_name": "ribeiro-nectar-arquivos" }],
   "vars": {
     "AMBIENTE": "producao",
-    "BETTER_AUTH_URL": "https://www.ribeironectar.com.br",
-    "MAPA_PROVEDOR": "google",
+    // Endereço público do sistema. Troque por https://www.ribeironectar.com.br quando o domínio for ligado.
+    "BETTER_AUTH_URL": "https://ribeiro-nectar.gabriel-sistemas-00.workers.dev",
+    // "osm" enquanto o sistema está em teste; "google" quando as empresas cadastrarem as próprias chaves.
+    "MAPA_PROVEDOR": "osm",
     "EMAIL_REMETENTE": "Ribeiro Néctar <nao-responda@ribeironectar.com.br>",
-    "NOMINATIM_CONTATO": "",
+    "NOMINATIM_CONTATO": "contato@gabrielstudio.com.br",
     "GOOGLE_MAPS_CHAVE_DEV": ""
   },
   "observability": { "enabled": true },

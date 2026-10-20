@@ -76,7 +76,14 @@ e2e/                 testes de ponta a ponta (Playwright)
 
 ## Publicação na Cloudflare
 
-1. **Banco**: `npx wrangler d1 create ribeiro-nectar` e copie o `database_id` mostrado para o `wrangler.jsonc`.
+**Situação atual:** publicado em https://ribeiro-nectar.gabriel-sistemas-00.workers.dev, com o banco D1
+`banco-ribeiro-nectar` (migrações aplicadas), o segredo `BETTER_AUTH_SECRET` cadastrado e o mapa em modo
+OpenStreetMap (`MAPA_PROVEDOR=osm`). Faltam o admin (passo 5), o Resend (passos 3 e 7) e o domínio (passo 6).
+Ao ligar o domínio, troque `BETTER_AUTH_URL` no `wrangler.jsonc` e publique de novo.
+
+Passo a passo para um ambiente novo:
+
+1. **Banco**: `npx wrangler d1 create <nome>` e copie o nome e o `database_id` mostrados para o `wrangler.jsonc`.
 2. **Migrações**: `npm run db:migrar-producao`.
 3. **Segredos** (não vão para o git):
    ```bash
