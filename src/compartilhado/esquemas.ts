@@ -124,7 +124,8 @@ export const esquemaAlterarEmpresa = z.object({
 });
 
 export const esquemaBloqueio = z.object({ bloquear: z.boolean() });
-export const esquemaCodigo = z.object({ codigo: z.string().max(20) });
+/** Exclusão de revendedor: o master digita o nome dele para confirmar. */
+export const esquemaExclusao = z.object({ confirmacao: z.string().max(200) });
 
 const esquemaResultadoMaps = z.union([
   z.object({ ok: z.literal(true) }),

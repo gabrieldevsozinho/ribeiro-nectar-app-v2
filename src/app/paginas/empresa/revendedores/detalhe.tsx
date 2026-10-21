@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { formatarDataHora, formatarMoeda } from "@/compartilhado/formato";
-import { EXCLUSAO_DE_REVENDEDOR_LIGADA } from "@/compartilhado/recursos";
-import type { ResultadoAcao, RevendedorDetalhe } from "@/compartilhado/tipos";
-import { api, chave, daEmpresa, ErroApi, fila } from "../../../api";
+import { formatarDataHora, formatarMoeda, paraComparar } from "@/compartilhado/formato";
+import type { RevendedorDetalhe } from "@/compartilhado/tipos";
+import { api, chave, daEmpresa, fila } from "../../../api";
 import { Aviso, Botao, Campo, Carregando, Cartao, ErroCarregar, LinkVoltar, Selo, TituloPagina, Vazio, useTitulo } from "../../../componentes/ui";
 import { useUsuario } from "../contexto";
 
@@ -102,16 +101,23 @@ export default function PaginaRevendedor() {
 }
 
 function AcoesRevendedor({ slug, perfilId, nome, bloqueado }: { slug: string; perfilId: string; nome: string; bloqueado: boolean }) {
+  const navegar = useNavigate();
   const bloqueio = useMutation({
     mutationFn: (bloquear: boolean) => api.patch<{ sucesso: string }>(daEmpresa(slug, `/revendedores/${perfilId}/bloqueio`), { bloquear }),
     onSuccess: () => fila.invalidateQueries({ queryKey: chave(slug, "revendedores") }),
   });
-  const pedido = useMutation({
-    mutationFn: () => api.post<ResultadoAcao>(daEmpresa(slug, `/revendedores/${perfilId}/codigo-exclusao`)),
+  const exclusao = useMutation({
+    mutationFn: (confirmacao: string) => api.post(daEmpresa(slug, `/revendedores/${perfilId}/exclusao`), { confirmacao }),
+    onSuccess: async () => {
+      await fila.invalidateQueries({ queryKey: chave(slug) });
+      navegar(`/${slug}/revendedores?excluido=1`);
+    },
   });
-  const ocupado = bloqueio.isPending || pedido.isPending;
-  // Código vencido ou tentativas esgotadas: a tela volta ao botão, com o motivo.
-  const [erroCodigo, setErroCodigo] = useState<string>();
+  const ocupado = bloqueio.isPending || exclusao.isPending;
+  // Para não excluir por engano, o master digita o nome do revendedor.
+  const [confirmando, setConfirmando] = useState(false);
+  const [digitado, setDigitado] = useState("");
+  const nomeConfere = paraComparar(digitado) === paraComparar(nome);
 
   return (
     <div className="mt-3 flex flex-col gap-4">
@@ -138,102 +144,54 @@ function AcoesRevendedor({ slug, perfilId, nome, bloqueado }: { slug: string; pe
         </Botao>
       </div>
 
-      {EXCLUSAO_DE_REVENDEDOR_LIGADA && (
-        <div className="border-t border-borda pt-4">
-          <p className="text-sm font-semibold text-erro">Excluir cadastro</p>
-          <p className="mt-1 text-sm text-texto-2">
-            O login é apagado e os dados pessoais são removidos. As vendas continuam no histórico como “Revendedor removido”. Para
-            confirmar, enviamos um código para o seu e-mail.
-          </p>
-          {pedido.data?.codigoEnviado ? (
-            <ConfirmarCodigo
-              slug={slug}
-              perfilId={perfilId}
-              aviso={pedido.data.sucesso}
-              aoRecomecar={(mensagem) => {
-                pedido.reset();
-                setErroCodigo(mensagem);
-              }}
+      <div className="border-t border-borda pt-4">
+        <p className="text-sm font-semibold text-erro">Excluir cadastro</p>
+        <p className="mt-1 text-sm text-texto-2">
+          O login é apagado e os dados pessoais são removidos. As vendas continuam no histórico como “Revendedor removido”. Isso não
+          pode ser desfeito.
+        </p>
+        {confirmando ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nomeConfere) exclusao.mutate(digitado);
+            }}
+            className="mt-3 flex flex-col gap-3"
+          >
+            {exclusao.isError && <Aviso tipo="erro">{exclusao.error.message}</Aviso>}
+            <Campo
+              rotulo={`Para confirmar, digite o nome: ${nome}`}
+              name="confirmacao"
+              value={digitado}
+              onChange={(e) => setDigitado(e.target.value)}
+              autoComplete="off"
+              autoFocus
+              required
             />
-          ) : (
-            <>
-              {(pedido.isError || erroCodigo) && (
-                <Aviso tipo="erro" className="mt-3">
-                  {pedido.error?.message ?? erroCodigo}
-                </Aviso>
-              )}
+            <div className="flex flex-wrap gap-2">
+              <Botao type="submit" variante="perigo" disabled={!nomeConfere || ocupado}>
+                {exclusao.isPending ? "Excluindo…" : "Excluir definitivamente"}
+              </Botao>
               <Botao
                 type="button"
-                variante="perigo"
-                className="mt-3"
-                disabled={ocupado}
+                variante="secundario"
+                disabled={exclusao.isPending}
                 onClick={() => {
-                  if (!window.confirm(`Excluir ${nome}? Isso não pode ser desfeito.`)) return;
-                  setErroCodigo(undefined);
-                  pedido.mutate();
+                  setConfirmando(false);
+                  setDigitado("");
+                  exclusao.reset();
                 }}
               >
-                {pedido.isPending ? "Enviando código…" : "Excluir revendedor"}
+                Cancelar
               </Botao>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ConfirmarCodigo({
-  slug,
-  perfilId,
-  aviso,
-  aoRecomecar,
-}: {
-  slug: string;
-  perfilId: string;
-  aviso?: string;
-  aoRecomecar: (mensagem: string) => void;
-}) {
-  const navegar = useNavigate();
-  const [erro, setErro] = useState<string>();
-  const confirmar = useMutation({
-    mutationFn: (codigo: string) => api.post(daEmpresa(slug, `/revendedores/${perfilId}/exclusao`), { codigo }),
-    onSuccess: async () => {
-      await fila.invalidateQueries({ queryKey: chave(slug) });
-      navegar(`/${slug}/revendedores?excluido=1`);
-    },
-    onError: (e) => {
-      // Sem mais tentativas (ou código vencido): volta para o botão de pedir um código novo.
-      if (e instanceof ErroApi && e.corpo?.codigoEnviado === false) aoRecomecar(e.message);
-      else setErro(e.message);
-    },
-  });
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        confirmar.mutate(String(new FormData(e.currentTarget).get("codigo") ?? ""));
-      }}
-      className="mt-3 flex flex-col gap-3"
-    >
-      {aviso && !erro && <Aviso tipo="info">{aviso} Ele vale por 15 minutos.</Aviso>}
-      {erro && <Aviso tipo="erro">{erro}</Aviso>}
-      <Campo
-        rotulo="Código recebido por e-mail"
-        name="codigo"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        pattern="[0-9]{6}"
-        required
-        className="max-w-48"
-      />
-      <div>
-        <Botao type="submit" variante="perigo" disabled={confirmar.isPending}>
-          {confirmar.isPending ? "Excluindo…" : "Confirmar exclusão"}
-        </Botao>
+            </div>
+          </form>
+        ) : (
+          <Botao type="button" variante="perigo" className="mt-3" disabled={ocupado} onClick={() => setConfirmando(true)}>
+            Excluir revendedor
+          </Botao>
+        )}
       </div>
-    </form>
+    </div>
   );
 }

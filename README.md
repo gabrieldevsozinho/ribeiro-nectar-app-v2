@@ -15,7 +15,7 @@ As telas, os endereços, as regras de acesso e as mensagens são as mesmas da v1
 | Banco | Cloudflare D1 (SQLite) com Drizzle ORM |
 | Login | Better Auth (e-mail e senha, sessões no D1, limite de tentativas por IP) |
 | Validação | Zod (corpo das requisições) |
-| E-mail | Resend (código de exclusão de revendedor) |
+| E-mail | Resend (`src/worker/servicos/email.ts`, pronto para uso; nenhuma tela envia e-mail hoje) |
 | Mapa | Google Maps com a chave de cada empresa, ou OpenStreetMap + Nominatim para testes |
 | Testes | Vitest dentro do runtime do Workers (`@cloudflare/vitest-plugin`) e Playwright |
 
@@ -79,7 +79,8 @@ e2e/                 testes de ponta a ponta (Playwright)
 
 **Situação atual:** publicado em https://ribeiro-nectar.gabriel-sistemas-00.workers.dev, com o banco D1
 `banco-ribeiro-nectar` (migrações aplicadas), o segredo `BETTER_AUTH_SECRET` cadastrado e o mapa em modo
-OpenStreetMap (`MAPA_PROVEDOR=osm`). Faltam o admin (passo 5), o Resend (passos 3 e 7) e o domínio (passo 6).
+OpenStreetMap (`MAPA_PROVEDOR=osm`). Falta o domínio (passo 6). O Resend (passos 3 e 7) é opcional: a
+exclusão de revendedor é confirmada digitando o nome dele, sem e-mail.
 Ao ligar o domínio, troque `BETTER_AUTH_URL` no `wrangler.jsonc` e publique de novo.
 
 Passo a passo para um ambiente novo:

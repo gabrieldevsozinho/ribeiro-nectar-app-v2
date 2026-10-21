@@ -3,6 +3,7 @@
  * são a mesma cidade. Estas funções comparam sem acento, maiúsculas nem espaços sobrando,
  * e escolhem a grafia que fica.
  */
+import { paraComparar } from "./formato";
 
 const semAcento = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -13,7 +14,7 @@ export function limparCidade(cidade: string): string {
 
 /** Chave de comparação: ("Santa Vitória", "MG") → "santa vitoria|MG". */
 export function chaveCidade(cidade: string, uf: string): string {
-  return `${semAcento(limparCidade(cidade)).toLowerCase()}|${uf.trim().toUpperCase()}`;
+  return `${paraComparar(cidade)}|${uf.trim().toUpperCase()}`;
 }
 
 const acentos = (texto: string) => texto.normalize("NFD").length - semAcento(texto).length;

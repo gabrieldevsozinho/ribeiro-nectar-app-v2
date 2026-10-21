@@ -1,6 +1,5 @@
 /** Login, primeiro acesso, cadastro e exclusão de revendedor, painel do admin. */
-import { describe, expect, it, vi } from "vitest";
-import { EXCLUSAO_DE_REVENDEDOR_LIGADA } from "../src/compartilhado/recursos";
+import { describe, expect, it } from "vitest";
 import { SENHA_DEV } from "../src/worker/seed/demo";
 import { chamar, consultar, cookiesDe, entrar, entrarAdmin } from "./apoio";
 
@@ -88,39 +87,24 @@ describe("revendedores", () => {
     expect(entrada.dados.destino).toBe("/apiario-ribeiro/primeiro-acesso");
   });
 
-  it.skipIf(EXCLUSAO_DE_REVENDEDOR_LIGADA)("com a exclusão desligada, a API recusa e o revendedor continua", async () => {
-    const lucas = await entrar("lucas@apiarioribeiro.dev");
-    const [carla] = await consultar<{ id: string }>("select id from perfis where email = 'carla@apiarioribeiro.dev'");
-    const pedido = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/codigo-exclusao`, { metodo: "POST", cookie: lucas });
-    expect(pedido.status).toBe(422);
-    const exclusao = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, { metodo: "POST", cookie: lucas, corpo: { codigo: "123456" } });
-    expect(exclusao.status).toBe(422);
-    const [depois] = await consultar<{ excluido_em: string | null }>("select excluido_em from perfis where id = ?", carla.id);
-    expect(depois.excluido_em).toBeNull();
-  });
-
-  it.skipIf(!EXCLUSAO_DE_REVENDEDOR_LIGADA)("a exclusão pede o código enviado ao e-mail do master, anonimiza e mantém as vendas", async () => {
+  it("a exclusão é confirmada pelo nome do revendedor, anonimiza e mantém as vendas", async () => {
     const lucas = await entrar("lucas@apiarioribeiro.dev");
     const [carla] = await consultar<{ id: string; user_id: string }>("select id, user_id from perfis where email = 'carla@apiarioribeiro.dev'");
     const [{ vendas }] = await consultar<{ vendas: number }>("select count(*) vendas from vendas where vendedor_id = ?", carla.id);
+    const excluir = (confirmacao: string, cookie = lucas) =>
+      chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, { metodo: "POST", cookie, corpo: { confirmacao } });
 
-    // Sem RESEND_API_KEY, em desenvolvimento, o e-mail vai para o log: é de lá que o teste lê o código.
-    const log = vi.spyOn(console, "info").mockImplementation(() => {});
-    const pedido = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/codigo-exclusao`, { metodo: "POST", cookie: lucas });
-    expect(pedido.dados).toEqual({ codigoEnviado: true, sucesso: "Enviamos um código para lucas@apiarioribeiro.dev." });
-    const codigo = String(log.mock.calls.at(-1)?.[0]).match(/Código: (\d{6})/)?.[1];
-    log.mockRestore();
-    expect(codigo).toMatch(/^\d{6}$/);
+    // O revendedor não exclui ninguém, nem com o nome certo.
+    const joao = await entrar("joao@apiarioribeiro.dev");
+    expect((await excluir("Carla Mendes", joao)).status).toBe(403);
 
-    const errado = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, {
-      metodo: "POST",
-      cookie: lucas,
-      corpo: { codigo: codigo === "000000" ? "111111" : "000000" },
-    });
-    expect(errado.dados).toEqual({ erro: "Código incorreto. Restam 4 tentativas.", codigoEnviado: true });
+    const errado = await excluir("Carla");
+    expect(errado.status).toBe(422);
+    expect(errado.dados.erro).toBe("Para confirmar, digite o nome do revendedor: Carla Mendes.");
 
-    const certo = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, { metodo: "POST", cookie: lucas, corpo: { codigo } });
-    expect(certo.status).toBe(200);
+    // Sem diferença de maiúsculas, acentos e espaços.
+    const certo = await excluir("  carla   MENDES ");
+    expect(certo.dados).toEqual({ sucesso: "Carla Mendes foi excluído." });
 
     const [depois] = await consultar<{ nome: string; email: string | null; user_id: string | null; excluido_em: string | null }>(
       "select nome, email, user_id, excluido_em from perfis where id = ?",
@@ -132,9 +116,8 @@ describe("revendedores", () => {
     const [{ vendasDepois }] = await consultar<{ vendasDepois: number }>("select count(*) vendasDepois from vendas where vendedor_id = ?", carla.id);
     expect(vendasDepois).toBe(vendas);
 
-    // O código não vale de novo.
-    const repetido = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, { metodo: "POST", cookie: lucas, corpo: { codigo } });
-    expect(repetido.dados.erro).toBe("Revendedor não encontrado.");
+    // Já excluído: não acha de novo.
+    expect((await excluir("Carla Mendes")).dados.erro).toBe("Revendedor não encontrado.");
   });
 });
 

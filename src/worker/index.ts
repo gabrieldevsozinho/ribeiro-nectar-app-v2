@@ -12,7 +12,6 @@ import { rotasAdmin } from "./rotas/admin";
 import { rotasAcessoInicial, rotasEmpresa } from "./rotas/empresa";
 import { rotasPublicas } from "./rotas/publico";
 import { rotasSessao } from "./rotas/sessao";
-import { CodigoRecusado } from "./servicos/revendedores";
 import { HTML_TESTE_GOOGLE_MAPS } from "./teste-google-maps";
 import type { AppEnv } from "./tipos";
 
@@ -76,7 +75,6 @@ app.get("/teste-google-maps", (c) => {
 app.notFound((c) => c.json({ erro: "Endereço não encontrado." }, 404));
 
 app.onError((erro, c) => {
-  if (erro instanceof CodigoRecusado) return c.json({ erro: erro.message, codigoEnviado: erro.podeTentarDeNovo }, 422);
   if (erro instanceof ErroDeNegocio) return c.json({ erro: erro.message }, 422);
   console.error(erro);
   return c.json({ erro: "Não foi possível concluir. Tente de novo." }, 500);

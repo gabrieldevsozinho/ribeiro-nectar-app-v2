@@ -312,7 +312,10 @@ export const itensVenda = sqliteTable(
   ],
 );
 
-/** Códigos de confirmação da exclusão de revendedor. Só o servidor lê e grava. */
+/**
+ * Códigos de confirmação por e-mail da exclusão de revendedor. Sem uso desde que a exclusão passou
+ * a ser confirmada digitando o nome do revendedor; a tabela fica para quando houver e-mail configurado.
+ */
 export const codigosExclusao = sqliteTable(
   "codigos_exclusao",
   {

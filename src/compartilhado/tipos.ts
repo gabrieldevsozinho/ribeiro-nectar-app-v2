@@ -40,7 +40,7 @@ export type UsuarioLogado = {
 /** Dados de login criados por um master ou pelo admin, mostrados uma única vez. */
 export type Credencial = { email: string; senha: string; endereco?: string };
 
-export type ResultadoAcao = { sucesso?: string; credencial?: Credencial; codigoEnviado?: boolean };
+export type ResultadoAcao = { sucesso?: string; credencial?: Credencial };
 
 // --- Público -----------------------------------------------------------------------
 export type EmpresaPublica = { nome: string; ativa: boolean };

@@ -28,6 +28,16 @@ export function formatarDataHora(valor: string | Date | null | undefined): strin
   return valor ? dataHora.format(new Date(valor)) : "—";
 }
 
+/** Para comparar textos digitados: sem acento, maiúsculas nem espaços sobrando ("  São  Paulo" = "sao paulo"). */
+export function paraComparar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** "1 venda", "3 vendas" */
 export function contar(quantidade: number, singular: string, plural: string): string {
   return `${quantidade} ${quantidade === 1 ? singular : plural}`;
