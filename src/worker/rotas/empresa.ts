@@ -23,6 +23,7 @@ import {
   esquemaSalvarChave,
   esquemaTrocarSenha,
 } from "@/compartilhado/esquemas";
+import { EXCLUSAO_DE_REVENDEDOR_LIGADA } from "@/compartilhado/recursos";
 import type { DadosMapa, FiltrosVendasDisponiveis } from "@/compartilhado/tipos";
 import { exigirMaster, exigirUsuarioDaEmpresa, paraNavegador, usuarioDaEmpresa } from "../acesso";
 import { perfis } from "../db/esquema";
@@ -73,6 +74,7 @@ import {
 import type { AppEnv } from "../tipos";
 
 const naoEncontrado = { erro: "Não encontrado." };
+const exclusaoDesligada = { erro: "A exclusão de revendedores está desligada no momento. Para tirar o acesso, use “Bloquear acesso”." };
 
 /** Rotas que valem também antes da troca da senha temporária. */
 const comTrocaPendente = exigirUsuarioDaEmpresa({ permitirTrocaPendente: true });
@@ -211,10 +213,12 @@ export const rotasEmpresa = new Hono<AppEnv>()
       sucesso: await definirBloqueio(c.get("db"), c.get("auth"), usuarioDaEmpresa(c), c.req.param("id"), c.req.valid("json").bloquear),
     }),
   )
-  .post("/revendedores/:id/codigo-exclusao", exigirMaster, async (c) =>
-    c.json(await solicitarCodigoExclusao(c.env, c.get("db"), usuarioDaEmpresa(c), c.req.param("id"))),
-  )
+  .post("/revendedores/:id/codigo-exclusao", exigirMaster, async (c) => {
+    if (!EXCLUSAO_DE_REVENDEDOR_LIGADA) return c.json(exclusaoDesligada, 422);
+    return c.json(await solicitarCodigoExclusao(c.env, c.get("db"), usuarioDaEmpresa(c), c.req.param("id")));
+  })
   .post("/revendedores/:id/exclusao", exigirMaster, validar("json", esquemaCodigo), async (c) => {
+    if (!EXCLUSAO_DE_REVENDEDOR_LIGADA) return c.json(exclusaoDesligada, 422);
     await confirmarExclusao(c.env, c.get("db"), c.get("auth"), usuarioDaEmpresa(c), c.req.param("id"), c.req.valid("json").codigo);
     return c.json({ ok: true });
   })

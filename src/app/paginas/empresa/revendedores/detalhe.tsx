@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { formatarDataHora, formatarMoeda } from "@/compartilhado/formato";
+import { EXCLUSAO_DE_REVENDEDOR_LIGADA } from "@/compartilhado/recursos";
 import type { ResultadoAcao, RevendedorDetalhe } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa, ErroApi, fila } from "../../../api";
 import { Aviso, Botao, Campo, Carregando, Cartao, ErroCarregar, LinkVoltar, Selo, TituloPagina, Vazio, useTitulo } from "../../../componentes/ui";
@@ -137,45 +138,47 @@ function AcoesRevendedor({ slug, perfilId, nome, bloqueado }: { slug: string; pe
         </Botao>
       </div>
 
-      <div className="border-t border-borda pt-4">
-        <p className="text-sm font-semibold text-erro">Excluir cadastro</p>
-        <p className="mt-1 text-sm text-texto-2">
-          O login é apagado e os dados pessoais são removidos. As vendas continuam no histórico como “Revendedor removido”. Para
-          confirmar, enviamos um código para o seu e-mail.
-        </p>
-        {pedido.data?.codigoEnviado ? (
-          <ConfirmarCodigo
-            slug={slug}
-            perfilId={perfilId}
-            aviso={pedido.data.sucesso}
-            aoRecomecar={(mensagem) => {
-              pedido.reset();
-              setErroCodigo(mensagem);
-            }}
-          />
-        ) : (
-          <>
-            {(pedido.isError || erroCodigo) && (
-              <Aviso tipo="erro" className="mt-3">
-                {pedido.error?.message ?? erroCodigo}
-              </Aviso>
-            )}
-            <Botao
-              type="button"
-              variante="perigo"
-              className="mt-3"
-              disabled={ocupado}
-              onClick={() => {
-                if (!window.confirm(`Excluir ${nome}? Isso não pode ser desfeito.`)) return;
-                setErroCodigo(undefined);
-                pedido.mutate();
+      {EXCLUSAO_DE_REVENDEDOR_LIGADA && (
+        <div className="border-t border-borda pt-4">
+          <p className="text-sm font-semibold text-erro">Excluir cadastro</p>
+          <p className="mt-1 text-sm text-texto-2">
+            O login é apagado e os dados pessoais são removidos. As vendas continuam no histórico como “Revendedor removido”. Para
+            confirmar, enviamos um código para o seu e-mail.
+          </p>
+          {pedido.data?.codigoEnviado ? (
+            <ConfirmarCodigo
+              slug={slug}
+              perfilId={perfilId}
+              aviso={pedido.data.sucesso}
+              aoRecomecar={(mensagem) => {
+                pedido.reset();
+                setErroCodigo(mensagem);
               }}
-            >
-              {pedido.isPending ? "Enviando código…" : "Excluir revendedor"}
-            </Botao>
-          </>
-        )}
-      </div>
+            />
+          ) : (
+            <>
+              {(pedido.isError || erroCodigo) && (
+                <Aviso tipo="erro" className="mt-3">
+                  {pedido.error?.message ?? erroCodigo}
+                </Aviso>
+              )}
+              <Botao
+                type="button"
+                variante="perigo"
+                className="mt-3"
+                disabled={ocupado}
+                onClick={() => {
+                  if (!window.confirm(`Excluir ${nome}? Isso não pode ser desfeito.`)) return;
+                  setErroCodigo(undefined);
+                  pedido.mutate();
+                }}
+              >
+                {pedido.isPending ? "Enviando código…" : "Excluir revendedor"}
+              </Botao>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

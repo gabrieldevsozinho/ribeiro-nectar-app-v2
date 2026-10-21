@@ -1,5 +1,6 @@
 /** Login, primeiro acesso, cadastro e exclusão de revendedor, painel do admin. */
 import { describe, expect, it, vi } from "vitest";
+import { EXCLUSAO_DE_REVENDEDOR_LIGADA } from "../src/compartilhado/recursos";
 import { SENHA_DEV } from "../src/worker/seed/demo";
 import { chamar, consultar, cookiesDe, entrar, entrarAdmin } from "./apoio";
 
@@ -87,7 +88,18 @@ describe("revendedores", () => {
     expect(entrada.dados.destino).toBe("/apiario-ribeiro/primeiro-acesso");
   });
 
-  it("a exclusão pede o código enviado ao e-mail do master, anonimiza e mantém as vendas", async () => {
+  it.skipIf(EXCLUSAO_DE_REVENDEDOR_LIGADA)("com a exclusão desligada, a API recusa e o revendedor continua", async () => {
+    const lucas = await entrar("lucas@apiarioribeiro.dev");
+    const [carla] = await consultar<{ id: string }>("select id from perfis where email = 'carla@apiarioribeiro.dev'");
+    const pedido = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/codigo-exclusao`, { metodo: "POST", cookie: lucas });
+    expect(pedido.status).toBe(422);
+    const exclusao = await chamar(`/api/e/apiario-ribeiro/revendedores/${carla.id}/exclusao`, { metodo: "POST", cookie: lucas, corpo: { codigo: "123456" } });
+    expect(exclusao.status).toBe(422);
+    const [depois] = await consultar<{ excluido_em: string | null }>("select excluido_em from perfis where id = ?", carla.id);
+    expect(depois.excluido_em).toBeNull();
+  });
+
+  it.skipIf(!EXCLUSAO_DE_REVENDEDOR_LIGADA)("a exclusão pede o código enviado ao e-mail do master, anonimiza e mantém as vendas", async () => {
     const lucas = await entrar("lucas@apiarioribeiro.dev");
     const [carla] = await consultar<{ id: string; user_id: string }>("select id, user_id from perfis where email = 'carla@apiarioribeiro.dev'");
     const [{ vendas }] = await consultar<{ vendas: number }>("select count(*) vendas from vendas where vendedor_id = ?", carla.id);
