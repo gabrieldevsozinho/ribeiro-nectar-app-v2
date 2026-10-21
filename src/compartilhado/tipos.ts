@@ -82,6 +82,7 @@ export type PontoComVendas = {
   bairro: string | null;
   cidade: string;
   uf: string;
+  cep: string | null;
   latitude: number | null;
   longitude: number | null;
   localizacaoStatus: StatusLocalizacao;

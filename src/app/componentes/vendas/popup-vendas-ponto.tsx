@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { formatarMoeda } from "@/compartilhado/formato";
+import { formatarCep, formatarMoeda } from "@/compartilhado/formato";
 import { haQuantoTempo, ROTULO_SITUACAO, type Situacao } from "@/compartilhado/semaforo";
 import { chave } from "../../api";
 import { carregarVendasDoPonto } from "../../chamadas";
@@ -18,19 +18,25 @@ export type PontoResumo = {
   bairro: string | null;
   cidade: string;
   uf: string;
+  cep: string | null;
   latitude: number | null;
   longitude: number | null;
   vendas: number;
   valorTotal: number;
 };
 
-/** Rota até o comércio no Google Maps e no Waze (pelas coordenadas; sem elas, pelo endereço). */
+const temCoordenadas = (p: PontoResumo) => p.latitude != null && p.longitude != null;
+
+/**
+ * Rota até o comércio no Google Maps e no Waze: pelo pino; sem pino, pelo endereço no formato que o
+ * Google entende ("Av. Brasil, 120 - Cidade, UF, 38320-000"). O bairro fica de fora: atrapalha a busca.
+ */
 function linksDeRota(p: PontoResumo) {
-  const endereco = [[p.logradouro, p.numero].filter(Boolean).join(", "), p.bairro, `${p.cidade} - ${p.uf}`].filter(Boolean).join(", ");
-  const temCoordenadas = p.latitude != null && p.longitude != null;
+  const rua = [p.logradouro, p.numero].filter(Boolean).join(", ");
+  const endereco = `${rua} - ${p.cidade}, ${p.uf}${p.cep ? `, ${formatarCep(p.cep)}` : ""}`;
   return {
-    google: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(temCoordenadas ? `${p.latitude},${p.longitude}` : endereco)}`,
-    waze: temCoordenadas
+    google: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(temCoordenadas(p) ? `${p.latitude},${p.longitude}` : endereco)}`,
+    waze: temCoordenadas(p)
       ? `https://waze.com/ul?ll=${p.latitude},${p.longitude}&navigate=yes`
       : `https://waze.com/ul?q=${encodeURIComponent(endereco)}&navigate=yes`,
   };
@@ -125,6 +131,15 @@ export function PopupVendasPonto({
             <a href={rota.waze} target="_blank" rel="noreferrer" className={BOTAO_ROTA}>
               Waze
             </a>
+            {!temCoordenadas(ponto) && (
+              <p className="col-span-2 text-xs text-texto-2">
+                Este comércio ainda não tem pino no mapa: a rota vai pelo endereço digitado e pode não ser achada.{" "}
+                <Link to={`/${slug}/pontos/${ponto.id}/editar`} className="font-semibold text-mel-texto underline underline-offset-2">
+                  Ajustar o pino
+                </Link>{" "}
+                resolve.
+              </p>
+            )}
           </div>
         </div>
 

@@ -294,6 +294,7 @@ export async function pontosComVendas(db: Db, u: UsuarioDaEmpresa): Promise<Pont
       bairro: pontosVenda.bairro,
       cidade: pontosVenda.cidade,
       uf: pontosVenda.uf,
+      cep: pontosVenda.cep,
       latitude: pontosVenda.latitude,
       longitude: pontosVenda.longitude,
       localizacaoStatus: pontosVenda.localizacaoStatus,

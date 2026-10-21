@@ -116,7 +116,14 @@ export function FormularioPonto({
       <Cartao className="flex flex-col gap-4">
         <h2 className="font-titulo text-lg font-bold">Endereço</h2>
         <div className="grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
-          <Campo rotulo="Rua / avenida" name="logradouro" defaultValue={v("logradouro")} required />
+          <Campo
+            rotulo="Rua / avenida"
+            name="logradouro"
+            defaultValue={v("logradouro")}
+            required
+            placeholder="Av. Brasil"
+            dica="Com o tipo: Rua, Av., Rodovia… Sem ele, o mapa e a rota podem não achar o endereço."
+          />
           <Campo rotulo="Número" name="numero" defaultValue={v("numero")} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
