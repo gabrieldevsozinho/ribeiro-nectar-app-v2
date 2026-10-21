@@ -1,5 +1,6 @@
 import { and, asc, count, countDistinct, desc, eq, gte, inArray, lt, max, or, sql, sum, type SQL } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
+import { chaveCidade, melhorGrafia } from "@/compartilhado/cidades";
 import { deCentavos, deMilesimos, paraCentavos, paraMilesimos } from "@/compartilhado/formato";
 import type {
   CidadeComVendas,
@@ -141,7 +142,7 @@ export async function listarVendas(db: Db, u: UsuarioDaEmpresa, filtros: Filtros
     condicoes.push(lt(vendas.dataVenda, fim.toISOString()));
   }
   if (filtros.vendedorId && UUID.test(filtros.vendedorId)) condicoes.push(eq(vendas.vendedorId, filtros.vendedorId));
-  if (cidade && uf) condicoes.push(eq(pontosVenda.cidade, cidade), eq(pontosVenda.uf, uf));
+  if (cidade && uf) condicoes.push(inArray(pontosVenda.cidade, await grafiasDaCidade(db, u, cidade, uf)), eq(pontosVenda.uf, uf));
   const onde = and(...condicoes);
 
   const [linhas, totais] = await Promise.all([
@@ -241,7 +242,7 @@ export async function obterVenda(db: Db, u: UsuarioDaEmpresa, id: string): Promi
   };
 }
 
-/** Cidades onde há vendas visíveis para quem está logado. */
+/** Cidades onde há vendas visíveis para quem está logado (grafias diferentes da mesma cidade juntas). */
 export async function cidadesComVendas(db: Db, u: UsuarioDaEmpresa): Promise<CidadeComVendas[]> {
   const linhas = await db
     .select({
@@ -254,9 +255,32 @@ export async function cidadesComVendas(db: Db, u: UsuarioDaEmpresa): Promise<Cid
     .from(vendas)
     .innerJoin(pontosVenda, eq(pontosVenda.id, vendas.pontoVendaId))
     .where(vendasVisiveis(db, u))
-    .groupBy(pontosVenda.cidade, pontosVenda.uf)
-    .orderBy(asc(pontosVenda.uf), asc(pontosVenda.cidade));
-  return linhas.map((l) => ({ ...l, ultimaVenda: l.ultimaVenda ?? "" }));
+    .groupBy(pontosVenda.cidade, pontosVenda.uf);
+
+  const grupos = new Map<string, CidadeComVendas & { grafias: { cidade: string; usos: number }[] }>();
+  for (const l of linhas) {
+    const chave = chaveCidade(l.cidade, l.uf);
+    const grupo = grupos.get(chave) ?? { cidade: l.cidade, uf: l.uf, pontos: 0, vendas: 0, ultimaVenda: "", grafias: [] };
+    grupo.pontos += l.pontos;
+    grupo.vendas += l.vendas;
+    if ((l.ultimaVenda ?? "") > grupo.ultimaVenda) grupo.ultimaVenda = l.ultimaVenda ?? "";
+    grupo.grafias.push({ cidade: l.cidade, usos: l.pontos });
+    grupos.set(chave, grupo);
+  }
+  return [...grupos.values()]
+    .map(({ grafias, ...cidade }) => ({ ...cidade, cidade: melhorGrafia(grafias) }))
+    .sort((a, b) => a.uf.localeCompare(b.uf) || a.cidade.localeCompare(b.cidade, "pt-BR"));
+}
+
+/** As grafias da cidade usadas nos pontos da empresa ("Santa Vitória" e "Santa Vitoria"), para o filtro achar todas. */
+async function grafiasDaCidade(db: Db, u: UsuarioDaEmpresa, cidade: string, uf: string): Promise<string[]> {
+  const chave = chaveCidade(cidade, uf);
+  const linhas = await db
+    .selectDistinct({ cidade: pontosVenda.cidade })
+    .from(pontosVenda)
+    .where(and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.uf, uf)));
+  const grafias = linhas.map((l) => l.cidade).filter((c) => chaveCidade(c, uf) === chave);
+  return grafias.length ? grafias : [cidade];
 }
 
 /** Pontos com vendas visíveis (para o mapa e o menu de cidades). */

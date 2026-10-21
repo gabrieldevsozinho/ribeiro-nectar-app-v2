@@ -1,8 +1,10 @@
 import { useRef, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { chaveCidade } from "@/compartilhado/cidades";
 import { formatarCep, formatarCnpj } from "@/compartilhado/formato";
-import type { ConfigMapaCliente, DadosPonto, EnderecoBusca, StatusLocalizacao } from "@/compartilhado/tipos";
+import type { CidadeCadastrada, ConfigMapaCliente, DadosPonto, EnderecoBusca, StatusLocalizacao } from "@/compartilhado/tipos";
 import { UFS } from "@/compartilhado/uf";
-import { lerFormulario, mensagemDe } from "../../../api";
+import { api, chave, daEmpresa, lerFormulario, mensagemDe } from "../../../api";
 import { ProvedorMapa } from "../../../componentes/mapa/provedor-mapa";
 import { SeletorLocalizacao, type Coordenadas } from "../../../componentes/mapa/seletor-localizacao";
 import { SeletorOsm } from "../../../componentes/mapa/osm/seletor-osm";
@@ -29,6 +31,12 @@ export function FormularioPonto({
     ponto?.latitude != null && ponto.longitude != null ? { lat: ponto.latitude, lng: ponto.longitude } : null,
   );
   const [statusLocal, setStatusLocal] = useState<StatusLocalizacao>(ponto?.localizacaoStatus ?? "pendente");
+  // Cidades já cadastradas na empresa: sugeridas enquanto digita, para não repetir a mesma cidade escrita de outro jeito.
+  const cidades = useQuery({
+    queryKey: chave(mapa.slug, "pontos", "cidades"),
+    queryFn: () => api.get<CidadeCadastrada[]>(daEmpresa(mapa.slug, "/pontos/cidades")),
+    staleTime: 60_000,
+  });
 
   const v = (campo: keyof DadosPonto, formatar?: (x: string) => string) => {
     const valor = ponto?.[campo];
@@ -48,6 +56,23 @@ export function FormularioPonto({
     const dados = new FormData(formulario.current!);
     const t = (c: string) => String(dados.get(c) ?? "").trim();
     return { logradouro: t("logradouro"), numero: t("numero"), bairro: t("bairro"), cidade: t("cidade"), uf: t("uf"), cep: t("cep") };
+  }
+
+  /**
+   * Cidade já cadastrada escrita de outro jeito ("santa vitoria"): troca pela grafia da empresa
+   * ("Santa Vitória") e, se o estado estiver vazio, preenche. O servidor confere de novo ao salvar.
+   */
+  function usarGrafiaCadastrada() {
+    const campos = formulario.current!.elements;
+    const cidade = campos.namedItem("cidade") as HTMLInputElement;
+    const uf = campos.namedItem("uf") as HTMLSelectElement;
+    if (!cidade.value.trim()) return;
+    const iguais = (cidades.data ?? []).filter(
+      (c) => chaveCidade(c.cidade, "") === chaveCidade(cidade.value, "") && (!uf.value || c.uf === uf.value),
+    );
+    if (iguais.length !== 1) return;
+    cidade.value = iguais[0]!.cidade;
+    if (!uf.value) uf.value = iguais[0]!.uf;
   }
 
   function aoMudarLocalizacao(novas: Coordenadas, status: StatusLocalizacao | "automatica" | "ajustada") {
@@ -99,7 +124,20 @@ export function FormularioPonto({
           <Campo rotulo="CEP" name="cep" inputMode="numeric" defaultValue={v("cep", formatarCep)} />
         </div>
         <div className="grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
-          <Campo rotulo="Cidade" name="cidade" defaultValue={v("cidade")} required />
+          <Campo
+            rotulo="Cidade"
+            name="cidade"
+            defaultValue={v("cidade")}
+            required
+            list="cidades-cadastradas"
+            autoComplete="off"
+            onBlur={usarGrafiaCadastrada}
+          />
+          <datalist id="cidades-cadastradas">
+            {(cidades.data ?? []).map((c) => (
+              <option key={`${c.cidade}|${c.uf}`} value={c.cidade} label={c.uf} />
+            ))}
+          </datalist>
           <Selecao rotulo="UF" name="uf" defaultValue={v("uf") || ""} required>
             <option value="" disabled>
               —

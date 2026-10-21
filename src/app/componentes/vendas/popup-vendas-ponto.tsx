@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { formatarMoeda } from "@/compartilhado/formato";
+import { haQuantoTempo, ROTULO_SITUACAO, type Situacao } from "@/compartilhado/semaforo";
 import { chave } from "../../api";
 import { carregarVendasDoPonto } from "../../chamadas";
 import { CartaoVenda } from "./cartao-venda";
 import { IconeFechar, IconeSeta, IconeVoltar } from "../icones";
-import { Carregando, ErroCarregar, Vazio } from "../ui";
+import { Bolinha, COR_TEXTO_SITUACAO } from "../mapa/situacao";
+import { BotaoLink, Carregando, ErroCarregar, Vazio } from "../ui";
 
 export type PontoResumo = {
   id: string;
@@ -16,12 +18,40 @@ export type PontoResumo = {
   bairro: string | null;
   cidade: string;
   uf: string;
+  latitude: number | null;
+  longitude: number | null;
   vendas: number;
   valorTotal: number;
 };
 
+/** Rota até o comércio no Google Maps e no Waze (pelas coordenadas; sem elas, pelo endereço). */
+function linksDeRota(p: PontoResumo) {
+  const endereco = [[p.logradouro, p.numero].filter(Boolean).join(", "), p.bairro, `${p.cidade} - ${p.uf}`].filter(Boolean).join(", ");
+  const temCoordenadas = p.latitude != null && p.longitude != null;
+  return {
+    google: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(temCoordenadas ? `${p.latitude},${p.longitude}` : endereco)}`,
+    waze: temCoordenadas
+      ? `https://waze.com/ul?ll=${p.latitude},${p.longitude}&navigate=yes`
+      : `https://waze.com/ul?q=${encodeURIComponent(endereco)}&navigate=yes`,
+  };
+}
+
+const BOTAO_ROTA =
+  "inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-borda-forte bg-superficie px-3 text-sm font-semibold text-texto hover:bg-superficie-2";
+
 /** Pop-up com as vendas de um ponto, 10 por página, buscadas uma página por vez. */
-export function PopupVendasPonto({ slug, ponto, aoFechar }: { slug: string; ponto: PontoResumo; aoFechar: () => void }) {
+export function PopupVendasPonto({
+  slug,
+  ponto,
+  ultimaVenda,
+  aoFechar,
+}: {
+  slug: string;
+  ponto: PontoResumo;
+  /** Dias desde a última venda e a cor do semáforo (null se o master ainda não definiu os prazos). */
+  ultimaVenda?: { dias: number; situacao: Situacao | null };
+  aoFechar: () => void;
+}) {
   const [pagina, setPagina] = useState(1);
   const dialogo = useRef<HTMLDialogElement>(null);
   const consulta = useQuery({
@@ -31,6 +61,7 @@ export function PopupVendasPonto({ slug, ponto, aoFechar }: { slug: string; pont
   });
   const dados = consulta.data;
   const carregando = consulta.isPending || consulta.isPlaceholderData;
+  const rota = linksDeRota(ponto);
 
   useEffect(() => {
     dialogo.current?.showModal();
@@ -54,6 +85,18 @@ export function PopupVendasPonto({ slug, ponto, aoFechar }: { slug: string; pont
               {[ponto.logradouro, ponto.numero].filter(Boolean).join(", ")}
               {ponto.bairro && ` · ${ponto.bairro}`} · {ponto.cidade}/{ponto.uf}
             </p>
+            {ultimaVenda && (
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm">
+                {ultimaVenda.situacao && (
+                  <>
+                    <Bolinha situacao={ultimaVenda.situacao} />
+                    <strong className={COR_TEXTO_SITUACAO[ultimaVenda.situacao]}>{ROTULO_SITUACAO[ultimaVenda.situacao]}</strong>
+                    <span aria-hidden="true">·</span>
+                  </>
+                )}
+                <span>última venda {haQuantoTempo(ultimaVenda.dias)}</span>
+              </p>
+            )}
             <p className="mt-1 text-sm">
               <strong>{ponto.vendas}</strong> {ponto.vendas === 1 ? "venda" : "vendas"} · <strong>{formatarMoeda(ponto.valorTotal)}</strong>
             </p>
@@ -67,6 +110,23 @@ export function PopupVendasPonto({ slug, ponto, aoFechar }: { slug: string; pont
             <IconeFechar />
           </button>
         </header>
+
+        <div className="flex flex-col gap-2 border-b border-borda bg-superficie px-5 pb-4">
+          <BotaoLink to={`/${slug}/vendas/nova?ponto=${ponto.id}`} className="w-full">
+            Registrar venda aqui
+          </BotaoLink>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby="popup-ponto-rota">
+            <p id="popup-ponto-rota" className="col-span-2 -mb-1 text-xs font-semibold text-texto-2">
+              Como chegar
+            </p>
+            <a href={rota.google} target="_blank" rel="noreferrer" className={BOTAO_ROTA}>
+              Google Maps
+            </a>
+            <a href={rota.waze} target="_blank" rel="noreferrer" className={BOTAO_ROTA}>
+              Waze
+            </a>
+          </div>
+        </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {consulta.isError ? (

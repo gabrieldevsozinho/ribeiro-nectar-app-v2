@@ -90,7 +90,22 @@ export type PontoComVendas = {
   ultimaVenda: string;
 };
 
-export type DadosMapa = { cidades: CidadeComVendas[]; pontos: PontoComVendas[]; pendentes: number };
+/** Prazos de visita definidos pelo master: até `emDia` dias desde a última venda, em dia; até `atencao`, atenção; depois, atrasado. */
+export type PrazosVisita = { emDia: number; atencao: number };
+
+export type DadosMapa = {
+  pontos: PontoComVendas[];
+  /** null enquanto o master não definir os prazos (o mapa fica sem as cores). */
+  prazos: PrazosVisita | null;
+  /**
+   * Só para o master: pontos sem localização. `aLocalizar` ainda não foram procurados no mapa;
+   * `naoEncontrados` foram procurados e não achados (o master ajusta o pino).
+   */
+  pendentes: { aLocalizar: number; naoEncontrados: PontoPendente[] };
+};
+
+/** Cidades dos pontos da empresa, para sugerir no cadastro e não repetir a mesma cidade escrita de outro jeito. */
+export type CidadeCadastrada = { cidade: string; uf: string };
 
 // --- Vendas ------------------------------------------------------------------------
 export type ItemResumo = { produto: string; unidade: string; quantidade: number; precoUnitario: number; subtotal: number };

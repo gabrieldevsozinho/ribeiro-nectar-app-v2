@@ -1,4 +1,4 @@
-const FUSO = "America/Sao_Paulo";
+export const FUSO = "America/Sao_Paulo";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 });
@@ -26,6 +26,11 @@ export function formatarData(valor: string | Date | null | undefined): string {
 
 export function formatarDataHora(valor: string | Date | null | undefined): string {
   return valor ? dataHora.format(new Date(valor)) : "—";
+}
+
+/** "1 venda", "3 vendas" */
+export function contar(quantidade: number, singular: string, plural: string): string {
+  return `${quantidade} ${quantidade === 1 ? singular : plural}`;
 }
 
 /** Só os dígitos de CNPJ, CEP e telefone. */

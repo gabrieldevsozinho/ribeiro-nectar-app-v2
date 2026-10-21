@@ -22,6 +22,28 @@ test("mapa de vendas mostra marcadores e abre o pop-up pelo marcador", async ({ 
   await expect(popup.getByText(/Página 1 de/)).toBeVisible();
 });
 
+test("o master define os prazos e o “Estou aqui” abre a cidade onde ele está", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: -20.5372, longitude: -47.4015 }); // centro de Franca/SP
+  await entrarComo(page, "lucas@apiarioribeiro.dev");
+  await page.goto("/apiario-ribeiro/mapa");
+
+  await page.getByRole("button", { name: /Definir prazos|Alterar prazos/ }).first().click();
+  const janela = page.getByRole("dialog", { name: "Prazos de visita" });
+  await janela.getByLabel("Em dia até").fill("30");
+  await janela.getByLabel("Atenção até").fill("60");
+  await expect(janela.getByText("de 31 a 60 dias desde a última venda")).toBeVisible();
+  await janela.getByRole("button", { name: "Salvar prazos" }).click();
+  await expect(janela).toBeHidden();
+  await expect(page.getByLabel("Legenda das cores")).toContainText("Em dia até 30 dias");
+
+  await page.getByRole("button", { name: "Estou aqui" }).click();
+  await expect(page.getByRole("heading", { name: "Franca/SP" })).toBeVisible();
+  // Na cidade: filtros pela situação, e o mapa só com os comércios dela.
+  await expect(page.getByRole("group", { name: "Filtrar por situação" }).getByRole("button", { name: /Todos 2/ })).toBeVisible();
+  await expect(page.locator(".pino-osm").filter({ visible: true })).toHaveCount(2, { timeout: 15_000 });
+});
+
 test("cadastro de ponto localiza o endereço pelo Nominatim e permite ajustar o pino", async ({ page }) => {
   test.setTimeout(90_000);
   await entrarComo(page, "lucas@apiarioribeiro.dev");

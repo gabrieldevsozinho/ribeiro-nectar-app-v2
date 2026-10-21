@@ -86,7 +86,9 @@ test("menu de cidades abre o pop-up com as vendas paginadas", async ({ page }) =
   const popup = page.getByRole("dialog");
   await expect(popup.getByRole("heading", { name: "Empório Bela Vista" })).toBeVisible();
   await expect(popup.getByText(/Página 1 de \d+/)).toBeVisible();
-  await expect(popup.locator('a[href*="/vendas/"]')).toHaveCount(10);
+  // As 10 vendas da página (o "Registrar venda aqui" leva a /vendas/nova).
+  await expect(popup.locator('a[href*="/vendas/"]:not([href*="/vendas/nova"])')).toHaveCount(10);
+  await expect(popup.getByRole("link", { name: "Registrar venda aqui" })).toHaveAttribute("href", /\/vendas\/nova\?ponto=/);
 
   await popup.getByRole("button", { name: /Próxima/ }).click();
   await expect(popup.getByText(/Página 2 de \d+/)).toBeVisible();

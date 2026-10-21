@@ -55,7 +55,7 @@ export default function PaginaPontos() {
 
       {usuario.papel === "master" && (lista.data?.pendentes ?? 0) > 0 && mapa.data?.disponivel && (
         <div className="mb-4">
-          <LocalizarPendentes config={mapa.data} />
+          <LocalizarPendentes config={mapa.data} modo="botao" />
         </div>
       )}
 

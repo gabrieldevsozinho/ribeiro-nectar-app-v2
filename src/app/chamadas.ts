@@ -13,8 +13,14 @@ export function geocodificarEndereco(slug: string, endereco: EnderecoBusca): Pro
   return api.post<RespostaGeocodificacao>(daEmpresa(slug, "/geocodificar"), endereco).catch(() => ({ ok: false }) as const);
 }
 
-export function pontosPendentes(slug: string) {
-  return api.get<PontoPendente[]>(daEmpresa(slug, "/pontos/pendentes"));
+/** Pontos sem localização. Sem `incluirNaoEncontrados`, só os que a busca automática ainda não tentou. */
+export function pontosPendentes(slug: string, incluirNaoEncontrados = false) {
+  return api.get<PontoPendente[]>(daEmpresa(slug, `/pontos/pendentes${incluirNaoEncontrados ? "?todos=1" : ""}`));
+}
+
+/** A busca não achou o endereço: o ponto não é procurado de novo sozinho. */
+export function marcarNaoEncontrado(slug: string, pontoId: string) {
+  return api.post(daEmpresa(slug, `/pontos/${pontoId}/localizacao/nao-encontrada`)).catch(() => undefined);
 }
 
 /** Grava a localização encontrada no mapa (pendentes localizados ou pino ajustado). */

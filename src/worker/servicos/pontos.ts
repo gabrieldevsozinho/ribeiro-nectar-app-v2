@@ -1,6 +1,17 @@
-import { and, asc, count, eq, or, sql, type AnyColumn, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNotNull, isNull, ne, or, sql, type AnyColumn, type SQL } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
+import { chaveCidade, limparCidade, melhorGrafia } from "@/compartilhado/cidades";
 import { somenteDigitos } from "@/compartilhado/formato";
-import type { DadosPonto, ListaPontos, PontoDetalhe, PontoEscolha, PontoPendente, StatusLocalizacao } from "@/compartilhado/tipos";
+import type {
+  CidadeCadastrada,
+  DadosMapa,
+  DadosPonto,
+  ListaPontos,
+  PontoDetalhe,
+  PontoEscolha,
+  PontoPendente,
+  StatusLocalizacao,
+} from "@/compartilhado/tipos";
 import { ufValida } from "@/compartilhado/uf";
 import type { Db } from "../db/cliente";
 import { pontosVenda } from "../db/esquema";
@@ -112,11 +123,12 @@ function lerPonto(entrada: EntradaPonto): DadosPonto {
   const cnpj = somenteDigitos(entrada.cnpj);
   const cep = somenteDigitos(entrada.cep);
   const uf = entrada.uf.toUpperCase();
+  const cidade = limparCidade(entrada.cidade);
 
   if (!entrada.nome) throw new ErroDeNegocio("Informe o nome do comércio.");
   if (cnpj && cnpj.length !== 14) throw new ErroDeNegocio("O CNPJ precisa ter 14 números (ou deixe em branco).");
   if (!entrada.logradouro) throw new ErroDeNegocio("Informe a rua ou avenida.");
-  if (!entrada.cidade) throw new ErroDeNegocio("Informe a cidade.");
+  if (!cidade) throw new ErroDeNegocio("Informe a cidade.");
   if (!ufValida(uf)) throw new ErroDeNegocio("Escolha o estado (UF).");
   if (cep && cep.length !== 8) throw new ErroDeNegocio("O CEP precisa ter 8 números (ou deixe em branco).");
 
@@ -138,7 +150,7 @@ function lerPonto(entrada: EntradaPonto): DadosPonto {
     logradouro: entrada.logradouro,
     numero: entrada.numero || null,
     bairro: entrada.bairro || null,
-    cidade: entrada.cidade,
+    cidade,
     uf,
     cep: cep || null,
     latitude: temCoordenadas ? latitude : null,
@@ -147,15 +159,47 @@ function lerPonto(entrada: EntradaPonto): DadosPonto {
   };
 }
 
+/**
+ * A cidade é digitada à mão: se a empresa já tem a mesma cidade escrita de outro jeito
+ * ("Santa Vitoria" × "Santa Vitória"), o ponto fica com a grafia mais completa e, se a
+ * digitada for a mais completa, os outros pontos da cidade passam a usá-la também.
+ */
+async function unificarCidade(db: Db, u: UsuarioDaEmpresa, dados: DadosPonto, pontoId?: string) {
+  const chave = chaveCidade(dados.cidade, dados.uf);
+  const existentes = (
+    await db
+      .select({ cidade: pontosVenda.cidade, usos: count() })
+      .from(pontosVenda)
+      .where(
+        and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.uf, dados.uf), pontoId ? ne(pontosVenda.id, pontoId) : undefined),
+      )
+      .groupBy(pontosVenda.cidade)
+      .orderBy(desc(count()))
+  ).filter((g) => chaveCidade(g.cidade, dados.uf) === chave);
+
+  const cidade = existentes.length ? melhorGrafia([...existentes, { cidade: dados.cidade, usos: 1 }]) : dados.cidade;
+  const outrasGrafias = existentes.map((g) => g.cidade).filter((c) => c !== cidade);
+  const corrigirOutros = outrasGrafias.length
+    ? [
+        db
+          .update(pontosVenda)
+          .set({ cidade })
+          .where(and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.uf, dados.uf), inArray(pontosVenda.cidade, outrasGrafias))),
+      ]
+    : [];
+  return { cidade, corrigirOutros };
+}
+
 export async function criarPonto(db: Db, u: UsuarioDaEmpresa, entrada: EntradaPonto): Promise<string> {
   const dados = lerPonto(entrada);
+  const { cidade, corrigirOutros } = await unificarCidade(db, u, dados);
+  const id = crypto.randomUUID();
   try {
-    const criado = await db
-      .insert(pontosVenda)
-      .values({ ...dados, empresaId: u.empresa.id, criadoPor: u.perfilId })
-      .returning({ id: pontosVenda.id })
-      .get();
-    return criado.id;
+    await db.batch([
+      db.insert(pontosVenda).values({ ...dados, cidade, id, empresaId: u.empresa.id, criadoPor: u.perfilId }),
+      ...corrigirOutros,
+    ] as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
+    return id;
   } catch (erro) {
     throw new ErroDeNegocio(mensagemErroBanco(erro));
   }
@@ -175,11 +219,16 @@ async function exigirPermissaoDeEdicao(db: Db, u: UsuarioDaEmpresa, pontoId: str
 export async function alterarPonto(db: Db, u: UsuarioDaEmpresa, pontoId: string, entrada: EntradaPonto) {
   const dados = lerPonto(entrada);
   await exigirPermissaoDeEdicao(db, u, pontoId);
+  const { cidade, corrigirOutros } = await unificarCidade(db, u, dados, pontoId);
   try {
-    await db
-      .update(pontosVenda)
-      .set(dados)
-      .where(and(eq(pontosVenda.id, pontoId), eq(pontosVenda.empresaId, u.empresa.id)));
+    await db.batch([
+      // Endereço novo: a busca automática pode tentar de novo.
+      db
+        .update(pontosVenda)
+        .set({ ...dados, cidade, localizacaoFalhouEm: null })
+        .where(and(eq(pontosVenda.id, pontoId), eq(pontosVenda.empresaId, u.empresa.id))),
+      ...corrigirOutros,
+    ] as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]);
   } catch (erro) {
     throw new ErroDeNegocio(mensagemErroBanco(erro));
   }
@@ -195,24 +244,69 @@ export async function definirLocalizacao(
   await exigirPermissaoDeEdicao(db, u, pontoId);
   await db
     .update(pontosVenda)
-    .set({ latitude: local.latitude, longitude: local.longitude, localizacaoStatus: local.status })
+    .set({ latitude: local.latitude, longitude: local.longitude, localizacaoStatus: local.status, localizacaoFalhouEm: null })
     .where(and(eq(pontosVenda.id, pontoId), eq(pontosVenda.empresaId, u.empresa.id)));
 }
 
-/** Pontos sem localização, para o master localizar quando houver mapa. */
-export async function pontosPendentes(db: Db, u: UsuarioDaEmpresa): Promise<PontoPendente[]> {
+/** A busca automática não achou o endereço: não tenta de novo sozinha (o master ajusta o pino). */
+export async function marcarNaoEncontrado(db: Db, u: UsuarioDaEmpresa, pontoId: string) {
+  await exigirPermissaoDeEdicao(db, u, pontoId);
+  await db
+    .update(pontosVenda)
+    .set({ localizacaoFalhouEm: sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))` })
+    .where(and(eq(pontosVenda.id, pontoId), eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.localizacaoStatus, "pendente")));
+}
+
+const pendentesDaEmpresa = (u: UsuarioDaEmpresa) =>
+  and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.localizacaoStatus, "pendente"));
+
+/**
+ * Pontos sem localização, para o master localizar quando houver mapa. Sem `incluirNaoEncontrados`,
+ * só os que a busca automática ainda não tentou.
+ */
+export async function pontosPendentes(db: Db, u: UsuarioDaEmpresa, incluirNaoEncontrados = false): Promise<PontoPendente[]> {
   return db
     .select({ ...CAMPOS_ESCOLHA, cep: pontosVenda.cep })
     .from(pontosVenda)
-    .where(and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.localizacaoStatus, "pendente")))
+    .where(incluirNaoEncontrados ? pendentesDaEmpresa(u) : and(pendentesDaEmpresa(u), isNull(pontosVenda.localizacaoFalhouEm)))
+    .orderBy(asc(pontosVenda.nome))
     .limit(50);
 }
 
-export async function contarPendentes(db: Db, u: UsuarioDaEmpresa): Promise<number> {
-  const linha = await db
-    .select({ total: count() })
+/** Resumo para o mapa: quantos ainda dá para procurar e quais não foram achados. */
+export async function resumoPendentes(db: Db, u: UsuarioDaEmpresa): Promise<DadosMapa["pendentes"]> {
+  const [aLocalizar, naoEncontrados] = await Promise.all([
+    db
+      .select({ total: count() })
+      .from(pontosVenda)
+      .where(and(pendentesDaEmpresa(u), isNull(pontosVenda.localizacaoFalhouEm)))
+      .get(),
+    db
+      .select({ ...CAMPOS_ESCOLHA, cep: pontosVenda.cep })
+      .from(pontosVenda)
+      .where(and(pendentesDaEmpresa(u), isNotNull(pontosVenda.localizacaoFalhouEm)))
+      .orderBy(asc(pontosVenda.nome))
+      .limit(50),
+  ]);
+  return { aLocalizar: aLocalizar?.total ?? 0, naoEncontrados };
+}
+
+/** Cidades dos pontos da empresa (uma grafia por cidade), para sugerir no cadastro. */
+export async function cidadesCadastradas(db: Db, u: UsuarioDaEmpresa): Promise<CidadeCadastrada[]> {
+  const linhas = await db
+    .select({ cidade: pontosVenda.cidade, uf: pontosVenda.uf, usos: count() })
     .from(pontosVenda)
-    .where(and(eq(pontosVenda.empresaId, u.empresa.id), eq(pontosVenda.localizacaoStatus, "pendente")))
-    .get();
-  return linha?.total ?? 0;
+    .where(eq(pontosVenda.empresaId, u.empresa.id))
+    .groupBy(pontosVenda.cidade, pontosVenda.uf);
+
+  const grupos = new Map<string, { uf: string; grafias: { cidade: string; usos: number }[] }>();
+  for (const l of linhas) {
+    const chave = chaveCidade(l.cidade, l.uf);
+    const grupo = grupos.get(chave) ?? { uf: l.uf, grafias: [] };
+    grupo.grafias.push({ cidade: l.cidade, usos: l.usos });
+    grupos.set(chave, grupo);
+  }
+  return [...grupos.values()]
+    .map((g) => ({ cidade: melhorGrafia(g.grafias), uf: g.uf }))
+    .sort((a, b) => a.cidade.localeCompare(b.cidade, "pt-BR") || a.uf.localeCompare(b.uf));
 }

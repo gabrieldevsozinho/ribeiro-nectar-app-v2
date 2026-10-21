@@ -150,7 +150,8 @@ describe("mapa e cidades", () => {
       "select count(*) total from vendas where vendedor_id = ?",
       await perfilId("joao@apiarioribeiro.dev"),
     );
-    expect(dados.cidades.reduce((soma: number, c: { vendas: number }) => soma + c.vendas, 0)).toBe(total);
-    expect(dados.pendentes).toBe(0); // só o master recebe a contagem de pendentes
+    expect(dados.pontos.reduce((soma: number, p: { vendas: number }) => soma + p.vendas, 0)).toBe(total);
+    // Só o master recebe os pontos sem localização.
+    expect(dados.pendentes).toEqual({ aLocalizar: 0, naoEncontrados: [] });
   });
 });

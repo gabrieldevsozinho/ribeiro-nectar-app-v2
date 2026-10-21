@@ -17,6 +17,7 @@ import {
   esquemaNovoUsuario,
   esquemaPerfil,
   esquemaPonto,
+  esquemaPrazos,
   esquemaProduto,
   esquemaRegistrarVenda,
   esquemaSalvarChave,
@@ -39,13 +40,16 @@ import { obterPerfil, salvarPerfil, trocarSenha, trocarSenhaInicial } from "../s
 import {
   alterarPonto,
   buscarPontos,
-  contarPendentes,
+  cidadesCadastradas,
   criarPonto,
   definirLocalizacao,
   listarPontos,
+  marcarNaoEncontrado,
   obterPonto,
   pontosPendentes,
+  resumoPendentes,
 } from "../servicos/pontos";
+import { obterPrazos, salvarPrazos } from "../servicos/prazos-visita";
 import { alterarProduto, criarProduto, definirProdutoAtivo, listarProdutos } from "../servicos/produtos";
 import {
   confirmarExclusao,
@@ -91,13 +95,16 @@ export const rotasEmpresa = new Hono<AppEnv>()
   .get("/mapa", async (c) => {
     const u = usuarioDaEmpresa(c);
     const db = c.get("db");
-    const [cidades, pontos, pendentes] = await Promise.all([
-      cidadesComVendas(db, u),
+    const [pontos, prazos, pendentes] = await Promise.all([
       pontosComVendas(db, u),
-      u.papel === "master" ? contarPendentes(db, u) : 0,
+      obterPrazos(db, u),
+      u.papel === "master" ? resumoPendentes(db, u) : { aLocalizar: 0, naoEncontrados: [] },
     ]);
-    return c.json<DadosMapa>({ cidades, pontos, pendentes });
+    return c.json<DadosMapa>({ pontos, prazos, pendentes });
   })
+  .put("/mapa/prazos", exigirMaster, validar("json", esquemaPrazos), async (c) =>
+    c.json({ sucesso: await salvarPrazos(c.get("db"), usuarioDaEmpresa(c), c.req.valid("json")) }),
+  )
   .post("/geocodificar", validar("json", esquemaGeocodificar), async (c) =>
     c.json(await geocodificarEndereco(c.env, c.req.valid("json"))),
   )
@@ -139,7 +146,10 @@ export const rotasEmpresa = new Hono<AppEnv>()
   // --- Pontos de venda -----------------------------------------------------------
   .get("/pontos", async (c) => c.json(await listarPontos(c.get("db"), usuarioDaEmpresa(c), c.req.query("q") ?? "")))
   .get("/pontos/busca", async (c) => c.json(await buscarPontos(c.get("db"), usuarioDaEmpresa(c), c.req.query("termo") ?? "")))
-  .get("/pontos/pendentes", exigirMaster, async (c) => c.json(await pontosPendentes(c.get("db"), usuarioDaEmpresa(c))))
+  .get("/pontos/cidades", async (c) => c.json(await cidadesCadastradas(c.get("db"), usuarioDaEmpresa(c))))
+  .get("/pontos/pendentes", exigirMaster, async (c) =>
+    c.json(await pontosPendentes(c.get("db"), usuarioDaEmpresa(c), c.req.query("todos") === "1")),
+  )
   .post("/pontos", validar("json", esquemaPonto), async (c) =>
     c.json({ id: await criarPonto(c.get("db"), usuarioDaEmpresa(c), c.req.valid("json")) }),
   )
@@ -153,6 +163,10 @@ export const rotasEmpresa = new Hono<AppEnv>()
   })
   .patch("/pontos/:id/localizacao", validar("json", esquemaLocalizacao), async (c) => {
     await definirLocalizacao(c.get("db"), usuarioDaEmpresa(c), c.req.param("id"), c.req.valid("json"));
+    return c.json({ ok: true });
+  })
+  .post("/pontos/:id/localizacao/nao-encontrada", exigirMaster, async (c) => {
+    await marcarNaoEncontrado(c.get("db"), usuarioDaEmpresa(c), c.req.param("id"));
     return c.json({ ok: true });
   })
   .get("/pontos/:id/vendas", async (c) =>

@@ -103,6 +103,14 @@ export const IconeVoltar = (p: Props) => (
     <path d="M15 6l-6 6 6 6" />
   </Base>
 );
+/** Mira do "Estou aqui". */
+export const IconeAlvo = (p: Props) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="7" />
+    <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+  </Base>
+);
 export const IconeAlerta = (p: Props) => (
   <Base {...p}>
     <path d="M12 3 2.5 20h19z" />

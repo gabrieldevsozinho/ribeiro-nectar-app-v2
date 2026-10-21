@@ -74,6 +74,17 @@ html {
   }
 }
 
+/* Grupo de pinos próximos no mapa de vendas: a cor de fundo vem do semáforo. */
+.grupo-pinos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgb(255 255 255 / 0.92);
+  border-radius: 9999px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 0.35);
+  font: 700 14px/1 var(--font-sans);
+}
+
 body {
   background: var(--color-fundo);
   color: var(--color-texto);

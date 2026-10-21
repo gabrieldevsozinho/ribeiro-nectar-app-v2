@@ -61,6 +61,7 @@ Os usuários e a senha de teste estão em `src/worker/seed/demo.ts`.
 | `npm run db:reset` | Apaga o banco local e aplica as migrações |
 | `npm run build` / `npm run deploy` | Gera os arquivos de produção / publica na Cloudflare |
 | `npm run cf-typegen` | Atualiza os tipos do Worker depois de mudar o `wrangler.jsonc` |
+| `npx tsx scripts/unificar-cidades.ts --remote` | Mostra cidades escritas de jeitos diferentes nos pontos ("Santa Vitoria" × "Santa Vitória"); com `--gravar`, unifica |
 
 ## Organização
 
@@ -69,7 +70,7 @@ src/app/             telas (React): paginas/, componentes/, api.ts (chamadas e r
 src/worker/          API (Hono): rotas/, servicos/, acesso.ts, auth/ (Better Auth), db/ (esquema Drizzle)
 src/compartilhado/   o que as telas e a API usam juntos: tipos da API, esquemas Zod, formatos, regras de senha e slug
 drizzle/migracoes/   esquema do banco e gatilhos (aplicados pelo Wrangler)
-scripts/             seed local, apagar banco local, criar o admin da plataforma
+scripts/             seed local, apagar banco local, criar o admin da plataforma, unificar grafias de cidades
 tests/               testes da API e do banco (Vitest)
 e2e/                 testes de ponta a ponta (Playwright)
 ```
@@ -115,6 +116,19 @@ A variável `MAPA_PROVEDOR` escolhe:
 |---|---|---|
 | `google` (padrão) | Google Maps, com a chave de cada empresa | Uso final |
 | `osm` | OpenStreetMap + Nominatim, sem chave nem cartão | Testes e desenvolvimento |
+
+## Mapa e cidades: semáforo de visitas
+
+O master define, no próprio mapa, os prazos de visita: até quantos dias desde a última venda o comércio
+está **em dia** e até quantos está em **atenção**; depois disso fica **atrasado**. Cada pino ganha a cor da
+situação, e um grupo de pinos fica com a cor do pior comércio dele. Enquanto o master não define os prazos,
+os pinos ficam cor de mel. O revendedor vê as cores pelas vendas dele (a regra de sempre: só vê onde vendeu).
+
+O botão **Estou aqui** usa o GPS do aparelho (vale para Google Maps e OpenStreetMap): mostra a posição
+no mapa e abre a cidade do comércio mais próximo (até 25 km).
+
+A cidade do ponto é digitada à mão; o sistema compara sem acento nem maiúsculas e grava a grafia que a
+empresa já usa (`src/compartilhado/cidades.ts`).
 
 ## O que mudou em relação à v1
 

@@ -107,6 +107,9 @@ export const empresas = sqliteTable(
     ativa: integer("ativa", { mode: "boolean" }).notNull().default(true),
     limiteMasters: integer("limite_masters").notNull().default(3),
     limiteRevendedores: integer("limite_revendedores").notNull().default(10),
+    // Prazos de visita do mapa (dias desde a última venda), definidos pelo master. Nulos até ele definir.
+    prazoEmDiaDias: integer("prazo_em_dia_dias"),
+    prazoAtencaoDias: integer("prazo_atencao_dias"),
     // Reservados para a fase de cobrança (Stripe).
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
@@ -222,6 +225,8 @@ export const pontosVenda = sqliteTable(
     latitude: real("latitude"),
     longitude: real("longitude"),
     localizacaoStatus: text("localizacao_status", { enum: STATUS_LOCALIZACAO }).notNull().default("pendente"),
+    // Quando a busca automática não achou o endereço: ela não tenta de novo sozinha (o master ajusta o pino).
+    localizacaoFalhouEm: text("localizacao_falhou_em"),
     criadoPor: text("criado_por").references(() => perfis.id),
     criadoEm: text("criado_em").notNull().default(agora),
   },

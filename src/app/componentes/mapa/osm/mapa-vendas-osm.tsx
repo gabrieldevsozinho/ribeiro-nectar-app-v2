@@ -1,15 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
-import { carregarLeaflet, criarMapa, iconePino, CENTRO_BRASIL_OSM } from "./leaflet";
-import type { MarcadorPonto } from "../mapa-vendas";
+import { piorSituacao, type Situacao } from "@/compartilhado/semaforo";
+import { carregarLeaflet, criarMapa, iconeGrupo, iconePino, marcadorMinhaPosicao, CENTRO_BRASIL_OSM } from "./leaflet";
+import type { PropsMapaVendas } from "../mapa-vendas";
 
-/** Mapa de vendas com OpenStreetMap: um marcador por ponto, agrupados quando próximos. */
-export function MapaVendasOsm({ pontos, aoEscolher }: { pontos: MarcadorPonto[]; aoEscolher: (id: string) => void }) {
+type Estado = { L: typeof Leaflet; mapa: Leaflet.Map; grupo: Leaflet.MarkerClusterGroup; eu: Leaflet.LayerGroup };
+type OpcoesPino = Leaflet.MarkerOptions & { situacao: Situacao | null };
+
+/** Mapa de vendas com OpenStreetMap: um pino por comércio, na cor da situação, agrupados quando próximos. */
+export function MapaVendasOsm({ pontos, minhaPosicao, enquadramento, foco, aoEscolher }: PropsMapaVendas) {
   const elemento = useRef<HTMLDivElement>(null);
-  const estado = useRef<{ L: typeof Leaflet; mapa: Leaflet.Map; grupo: Leaflet.MarkerClusterGroup } | null>(null);
-  const aoEscolherRef = useRef(aoEscolher);
+  const [estado, setEstado] = useState<Estado | null>(null);
+  const marcadores = useRef(new Map<string, Leaflet.Marker>());
+  const atuais = useRef({ pontos, minhaPosicao, aoEscolher });
   useEffect(() => {
-    aoEscolherRef.current = aoEscolher;
+    atuais.current = { pontos, minhaPosicao, aoEscolher };
   });
 
   // Cria o mapa uma vez.
@@ -20,41 +25,73 @@ export function MapaVendasOsm({ pontos, aoEscolher }: { pontos: MarcadorPonto[];
       const L = await carregarLeaflet(true);
       if (cancelado || !elemento.current) return;
       mapa = criarMapa(L, elemento.current, { center: CENTRO_BRASIL_OSM, zoom: 4 });
-      const grupo = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 50 });
+      const grupo = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 50,
+        // Dentro da cidade, cada comércio aparece no seu pino.
+        disableClusteringAtZoom: 15,
+        iconCreateFunction: (cluster) =>
+          iconeGrupo(
+            L,
+            cluster.getChildCount(),
+            piorSituacao(cluster.getAllChildMarkers().map((m) => (m.options as OpcoesPino).situacao ?? null)),
+          ),
+      });
       mapa.addLayer(grupo);
-      estado.current = { L, mapa, grupo };
-      desenhar();
+      const eu = L.layerGroup().addTo(mapa);
+      setEstado({ L, mapa, grupo, eu });
     })();
     return () => {
       cancelado = true;
-      estado.current = null;
       mapa?.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function desenhar() {
-    const atual = estado.current;
-    if (!atual) return;
-    const { L, mapa, grupo } = atual;
-    grupo.clearLayers();
-    pontos.forEach((p) => {
-      const marcador = L.marker([p.lat, p.lng], { icon: iconePino(L, p.destacado), title: p.nome, alt: p.nome });
-      marcador.on("click", () => aoEscolherRef.current(p.id));
-      grupo.addLayer(marcador);
-    });
-    if (pontos.length > 0) {
-      const foco = pontos.some((p) => p.destacado) ? pontos.filter((p) => p.destacado) : pontos;
-      const limites = L.latLngBounds(foco.map((p) => [p.lat, p.lng] as [number, number]));
-      mapa.fitBounds(limites, { padding: [50, 50], maxZoom: foco.length === 1 ? 15 : 17 });
-    }
-  }
-
-  // Redesenha quando a lista (ou a cidade em destaque) muda.
+  // Pinos (redesenhados quando a lista, a cor ou o escolhido mudam).
   useEffect(() => {
-    desenhar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pontos]);
+    if (!estado) return;
+    const { L, grupo } = estado;
+    grupo.clearLayers();
+    marcadores.current.clear();
+    for (const p of pontos) {
+      const opcoes: OpcoesPino = {
+        icon: iconePino(L, p.selecionado, p.situacao),
+        title: p.nome,
+        alt: p.nome,
+        situacao: p.situacao,
+        zIndexOffset: p.selecionado ? 1000 : 0,
+      };
+      const marcador = L.marker([p.lat, p.lng], opcoes);
+      marcador.on("click", () => atuais.current.aoEscolher(p.id));
+      grupo.addLayer(marcador);
+      marcadores.current.set(p.id, marcador);
+    }
+  }, [estado, pontos]);
+
+  // "Você está aqui"
+  useEffect(() => {
+    if (!estado) return;
+    estado.eu.clearLayers();
+    if (minhaPosicao) marcadorMinhaPosicao(estado.L, minhaPosicao).addTo(estado.eu);
+  }, [estado, minhaPosicao]);
+
+  // Enquadra os pinos (e a posição de quem está usando) quando muda a cidade, o filtro ou o "Estou aqui".
+  useEffect(() => {
+    if (!estado) return;
+    const { pontos: lista, minhaPosicao: eu } = atuais.current;
+    const coordenadas: [number, number][] = lista.map((p) => [p.lat, p.lng]);
+    if (eu) coordenadas.push([eu.lat, eu.lng]);
+    if (coordenadas.length === 0) return;
+    if (coordenadas.length === 1) estado.mapa.setView(coordenadas[0]!, 15);
+    else estado.mapa.fitBounds(estado.L.latLngBounds(coordenadas), { padding: [40, 40], maxZoom: 16 });
+  }, [estado, enquadramento]);
+
+  // Comércio escolhido na lista: o mapa vai até ele.
+  useEffect(() => {
+    if (!estado || !foco) return;
+    const marcador = marcadores.current.get(foco);
+    if (marcador) estado.mapa.setView(marcador.getLatLng(), Math.max(estado.mapa.getZoom(), 16));
+  }, [estado, foco]);
 
   return <div ref={elemento} className="h-full w-full" role="application" aria-label="Mapa de vendas" />;
 }

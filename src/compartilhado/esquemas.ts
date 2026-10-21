@@ -73,6 +73,9 @@ export const esquemaItens = z
   )
   .max(50, "No máximo 50 itens por vez.");
 
+/** Prazos de visita do mapa, em dias (as regras ficam no serviço, com as mensagens). */
+export const esquemaPrazos = z.object({ emDia: texto(6), atencao: texto(6) });
+
 export const esquemaRegistrarVenda = z.object({
   pontoId: z.string().max(40),
   itens: esquemaItens,
