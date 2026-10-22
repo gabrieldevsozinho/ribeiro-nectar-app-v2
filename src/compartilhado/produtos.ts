@@ -18,8 +18,11 @@ export const DEFAULT_CATEGORIAS_PRODUTO = [
   "Outro",
 ];
 
-/** Tamanhos comuns, para sugerir no campo "Unidade" sem travar a digitação livre. */
-export const UNIDADES_SUGERIDAS = [
+/**
+ * Unidades iniciais de uma empresa nova (o master edita ou exclui dali em diante). São os tamanhos
+ * mais comuns num apiário; a lista completa fica em unidades_produto, por empresa.
+ */
+export const DEFAULT_UNIDADES_PRODUTO = [
   "pote 500 g",
   "pote 1 kg",
   "bisnaga 280 g",

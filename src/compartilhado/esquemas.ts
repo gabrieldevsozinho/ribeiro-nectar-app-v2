@@ -43,6 +43,9 @@ export const esquemaProduto = z.object({
 /** Categoria do catálogo (linha, ex.: "Mel"): o master cria e exclui as da própria empresa. */
 export const esquemaCategoriaProduto = z.object({ nome: texto(60) });
 
+/** Unidade do catálogo (tamanho, ex.: "pote 1 kg"): o master cria e exclui as da própria empresa. */
+export const esquemaUnidadeProduto = z.object({ nome: texto(30) });
+
 export const esquemaAtivo = z.object({ ativo: z.boolean() });
 
 export const esquemaPonto = z.object({

@@ -50,6 +50,13 @@
       "when": 1792615400000,
       "tag": "0006_gatilho_categoria",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1793145600000,
+      "tag": "0007_unidades_por_empresa",
+      "breakpoints": true
     }
   ]
 }

@@ -205,6 +205,28 @@ export const categoriasProduto = sqliteTable(
   ],
 );
 
+/**
+ * Unidades do catálogo (tamanhos como "pote 1 kg", "frasco 30 ml"): cada empresa tem as suas,
+ * criadas pelo master. `criarEmpresa` já cadastra um conjunto inicial (veja DEFAULT_UNIDADES_PRODUTO),
+ * que o master edita livremente dali em diante. A unidade do produto continua guardada como texto
+ * livre (produtos.unidade); esta tabela só serve para o dropdown do cadastro.
+ */
+export const unidadesProduto = sqliteTable(
+  "unidades_produto",
+  {
+    id: id(),
+    empresaId: text("empresa_id")
+      .notNull()
+      .references(() => empresas.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(),
+    criadoEm: text("criado_em").notNull().default(agora),
+  },
+  (t) => [
+    check("unidades_produto_nome", sql`length(trim(${t.nome})) between 1 and 30`),
+    uniqueIndex("unidades_produto_nome_unico").on(t.empresaId, sql`lower(trim(${t.nome}))`),
+  ],
+);
+
 export const produtos = sqliteTable(
   "produtos",
   {

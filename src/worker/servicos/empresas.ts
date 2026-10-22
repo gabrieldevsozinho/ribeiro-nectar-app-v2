@@ -4,7 +4,7 @@
  * mas nenhuma venda, nenhum revendedor e nenhuma chave.
  */
 import { and, asc, count, eq, isNull, isNotNull, sql } from "drizzle-orm";
-import { DEFAULT_CATEGORIAS_PRODUTO } from "@/compartilhado/produtos";
+import { DEFAULT_CATEGORIAS_PRODUTO, DEFAULT_UNIDADES_PRODUTO } from "@/compartilhado/produtos";
 import { validarSenha } from "@/compartilhado/senha";
 import { slugValido } from "@/compartilhado/slug";
 import type { EmpresaDetalhe, EmpresaResumo, ResultadoAcao } from "@/compartilhado/tipos";
@@ -13,6 +13,7 @@ import type { Db } from "../db/cliente";
 import { authUsuarios, empresas, googleMapsEmpresa, perfis } from "../db/esquema";
 import { ErroDeNegocio, mensagemErroBanco } from "../erros";
 import { criarCategoriasIniciais } from "./categorias-produto";
+import { criarUnidadesIniciais } from "./unidades-produto";
 import {
   EMAIL_VALIDO,
   apagarLogin,
@@ -136,8 +137,9 @@ export async function criarEmpresa(
   } catch (erro) {
     throw new ErroDeNegocio(mensagemErroBanco(erro));
   }
-  // Conjunto inicial de categorias do catálogo; o master cria ou exclui as da própria empresa dali em diante.
+  // Conjunto inicial de categorias e unidades do catálogo; o master cria ou exclui as da própria empresa dali em diante.
   await criarCategoriasIniciais(db, empresaId, DEFAULT_CATEGORIAS_PRODUTO);
+  await criarUnidadesIniciais(db, empresaId, DEFAULT_UNIDADES_PRODUTO);
 
   const resultado = await criarUsuarioComSenhaTemporaria(db, auth, {
     empresaId,

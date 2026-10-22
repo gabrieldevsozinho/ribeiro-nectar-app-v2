@@ -20,6 +20,7 @@ import {
   esquemaPrazos,
   esquemaCategoriaProduto,
   esquemaProduto,
+  esquemaUnidadeProduto,
   esquemaRegistrarVenda,
   esquemaSalvarChave,
   esquemaTrocarSenha,
@@ -52,6 +53,7 @@ import {
 } from "../servicos/pontos";
 import { obterPrazos, salvarPrazos } from "../servicos/prazos-visita";
 import { criarCategoria, excluirCategoria, listarCategorias } from "../servicos/categorias-produto";
+import { criarUnidade, excluirUnidade, listarUnidades } from "../servicos/unidades-produto";
 import { alterarProduto, criarProduto, definirProdutoAtivo, listarProdutos } from "../servicos/produtos";
 import { criarRevendedor, definirBloqueio, excluirRevendedor, listarRevendedores, obterRevendedor } from "../servicos/revendedores";
 import {
@@ -187,6 +189,15 @@ export const rotasEmpresa = new Hono<AppEnv>()
   )
   .delete("/produtos/categorias/:id", exigirMaster, async (c) =>
     c.json({ sucesso: await excluirCategoria(c.get("db"), usuarioDaEmpresa(c), c.req.param("id")) }),
+  )
+
+  // --- Unidades de produto (master cria e exclui as da própria empresa) ----------
+  .get("/produtos/unidades", exigirMaster, async (c) => c.json(await listarUnidades(c.get("db"), usuarioDaEmpresa(c))))
+  .post("/produtos/unidades", exigirMaster, validar("json", esquemaUnidadeProduto), async (c) =>
+    c.json(await criarUnidade(c.get("db"), usuarioDaEmpresa(c), c.req.valid("json").nome)),
+  )
+  .delete("/produtos/unidades/:id", exigirMaster, async (c) =>
+    c.json({ sucesso: await excluirUnidade(c.get("db"), usuarioDaEmpresa(c), c.req.param("id")) }),
   )
 
   // --- Google Maps ---------------------------------------------------------------

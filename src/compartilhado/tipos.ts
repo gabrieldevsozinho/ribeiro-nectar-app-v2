@@ -137,6 +137,9 @@ export type PontoEscolha = {
 /** Categoria do catálogo de produtos (linha, ex.: "Mel"): a empresa cria e exclui as suas. */
 export type CategoriaProduto = { id: string; nome: string };
 
+/** Unidade do catálogo (tamanho, ex.: "pote 1 kg"): a empresa cria e exclui as suas. */
+export type UnidadeProduto = { id: string; nome: string };
+
 export type ProdutoCatalogo = { id: string; nome: string; categoria: CategoriaProduto | null; unidade: string; precoSugerido: number };
 export type Produto = ProdutoCatalogo & { ativo: boolean };
 

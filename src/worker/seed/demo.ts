@@ -7,10 +7,10 @@
  */
 import { eq } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
-import { DEFAULT_CATEGORIAS_PRODUTO } from "@/compartilhado/produtos";
+import { DEFAULT_CATEGORIAS_PRODUTO, DEFAULT_UNIDADES_PRODUTO } from "@/compartilhado/produtos";
 import { gerarHashSenha } from "../auth/senha-hash";
 import type { Db } from "../db/cliente";
-import { authContas, authUsuarios, categoriasProduto, empresas, itensVenda, perfis, pontosVenda, produtos, vendas } from "../db/esquema";
+import { authContas, authUsuarios, categoriasProduto, empresas, itensVenda, perfis, pontosVenda, produtos, unidadesProduto, vendas } from "../db/esquema";
 
 export const SENHA_DEV = "Mel-dev-2026";
 
@@ -97,6 +97,12 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
       .values(DEFAULT_CATEGORIAS_PRODUTO.map((nome) => ({ empresaId, nome })))
       .returning({ id: categoriasProduto.id, nome: categoriasProduto.nome });
     return new Map(linhas.map((l) => [l.nome, l.id]));
+  }
+
+  /** As unidades iniciais da empresa (mesmas de criarEmpresa() no painel do admin). */
+  async function criarUnidades(empresaId: string, extras: string[] = []) {
+    const nomes = Array.from(new Set([...DEFAULT_UNIDADES_PRODUTO, ...extras]));
+    await db.insert(unidadesProduto).values(nomes.map((nome) => ({ empresaId, nome })));
   }
 
   // Um comando por ponto: o D1 aceita no máximo 100 valores por comando.
@@ -187,6 +193,8 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
   // --- Apiário Ribeiro ------------------------------------------------------------
   const ribeiro = await criarEmpresa("Apiário Ribeiro", "apiario-ribeiro");
   const categoriasRibeiro = await criarCategorias(ribeiro);
+  // Unidades extras: as que os produtos de demonstração usam e não estão no conjunto padrão.
+  await criarUnidades(ribeiro, ["garrafa 1 L", "bandeja 300 g", "pote 250 g", "frasco 30 g"]);
   const lucas = await criarUsuario({
     email: "lucas@apiarioribeiro.dev",
     nome: "Lucas Ribeiro",
@@ -243,6 +251,7 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
   // --- Mel Silva (segunda empresa, para testar o isolamento) ----------------------
   const silva = await criarEmpresa("Mel Silva", "mel-silva");
   const categoriasSilva = await criarCategorias(silva);
+  await criarUnidades(silva, ["sachê 10 g"]);
   const marcos = await criarUsuario({ email: "marcos@melsilva.dev", nome: "Marcos Silva", papel: "master", empresaId: silva, compartilhaVendas: true });
   const bia = await criarUsuario({ email: "bia@melsilva.dev", nome: "Beatriz Lima", papel: "revendedor", empresaId: silva });
   const produtosSilva = await criarProdutos(silva, categoriasSilva, [
