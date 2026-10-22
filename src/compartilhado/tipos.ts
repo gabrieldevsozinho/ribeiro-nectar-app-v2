@@ -134,7 +134,10 @@ export type PontoEscolha = {
   uf: string;
 };
 
-export type ProdutoCatalogo = { id: string; nome: string; unidade: string; precoSugerido: number };
+/** Categoria do catálogo de produtos (linha, ex.: "Mel"): a empresa cria e exclui as suas. */
+export type CategoriaProduto = { id: string; nome: string };
+
+export type ProdutoCatalogo = { id: string; nome: string; categoria: CategoriaProduto | null; unidade: string; precoSugerido: number };
 export type Produto = ProdutoCatalogo & { ativo: boolean };
 
 export type DadosNovaVenda = { produtos: ProdutoCatalogo[]; pontoInicial: PontoEscolha | null; recentes: PontoEscolha[] };

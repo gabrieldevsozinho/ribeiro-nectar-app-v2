@@ -7,9 +7,10 @@
  */
 import { eq } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
+import { DEFAULT_CATEGORIAS_PRODUTO } from "@/compartilhado/produtos";
 import { gerarHashSenha } from "../auth/senha-hash";
 import type { Db } from "../db/cliente";
-import { authContas, authUsuarios, empresas, itensVenda, perfis, pontosVenda, produtos, vendas } from "../db/esquema";
+import { authContas, authUsuarios, categoriasProduto, empresas, itensVenda, perfis, pontosVenda, produtos, vendas } from "../db/esquema";
 
 export const SENHA_DEV = "Mel-dev-2026";
 
@@ -89,6 +90,15 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
     return criada.id;
   }
 
+  /** As categorias iniciais da empresa (mesmas de criarEmpresa() no painel do admin), por nome → id. */
+  async function criarCategorias(empresaId: string): Promise<Map<string, string>> {
+    const linhas = await db
+      .insert(categoriasProduto)
+      .values(DEFAULT_CATEGORIAS_PRODUTO.map((nome) => ({ empresaId, nome })))
+      .returning({ id: categoriasProduto.id, nome: categoriasProduto.nome });
+    return new Map(linhas.map((l) => [l.nome, l.id]));
+  }
+
   // Um comando por ponto: o D1 aceita no máximo 100 valores por comando.
   async function criarPontos(empresaId: string, criadoPor: string, lista: Ponto[]) {
     const ids = lista.map(() => crypto.randomUUID());
@@ -115,10 +125,22 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
     return ids;
   }
 
-  async function criarProdutos(empresaId: string, lista: { nome: string; unidade: string; preco: number }[]) {
+  async function criarProdutos(
+    empresaId: string,
+    categorias: Map<string, string>,
+    lista: { nome: string; categoria: string; unidade: string; preco: number }[],
+  ) {
     return db
       .insert(produtos)
-      .values(lista.map((p) => ({ empresaId, nome: p.nome, unidade: p.unidade, precoSugeridoCentavos: Math.round(p.preco * 100) })))
+      .values(
+        lista.map((p) => ({
+          empresaId,
+          nome: p.nome,
+          categoriaId: categorias.get(p.categoria),
+          unidade: p.unidade,
+          precoSugeridoCentavos: Math.round(p.preco * 100),
+        })),
+      )
       .returning({ id: produtos.id, precoSugeridoCentavos: produtos.precoSugeridoCentavos });
   }
 
@@ -164,6 +186,7 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
 
   // --- Apiário Ribeiro ------------------------------------------------------------
   const ribeiro = await criarEmpresa("Apiário Ribeiro", "apiario-ribeiro");
+  const categoriasRibeiro = await criarCategorias(ribeiro);
   const lucas = await criarUsuario({
     email: "lucas@apiarioribeiro.dev",
     nome: "Lucas Ribeiro",
@@ -189,12 +212,15 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
   // Revendedor recém-cadastrado: precisa trocar a senha no primeiro acesso.
   await criarUsuario({ email: "novo@apiarioribeiro.dev", nome: "Rafael Novo", papel: "revendedor", empresaId: ribeiro, telefone: "(16) 98888-1005", deveTrocarSenha: true });
 
-  const produtosRibeiro = await criarProdutos(ribeiro, [
-    { nome: "Mel silvestre", unidade: "pote 1 kg", preco: 45 },
-    { nome: "Mel silvestre", unidade: "pote 500 g", preco: 25 },
-    { nome: "Néctar de laranjeira", unidade: "garrafa 1 L", preco: 38 },
-    { nome: "Própolis verde", unidade: "frasco 30 ml", preco: 22 },
-    { nome: "Favo de mel", unidade: "bandeja 300 g", preco: 30 },
+  const produtosRibeiro = await criarProdutos(ribeiro, categoriasRibeiro, [
+    { nome: "Mel silvestre", categoria: "Mel", unidade: "pote 1 kg", preco: 45 },
+    { nome: "Mel silvestre", categoria: "Mel", unidade: "pote 500 g", preco: 25 },
+    { nome: "Mel de laranjeira", categoria: "Mel", unidade: "garrafa 1 L", preco: 38 },
+    { nome: "Própolis verde", categoria: "Própolis", unidade: "frasco 30 ml", preco: 22 },
+    { nome: "Favo de mel", categoria: "Favo de mel", unidade: "bandeja 300 g", preco: 30 },
+    { nome: "Pólen apícola", categoria: "Pólen", unidade: "pote 250 g", preco: 28 },
+    { nome: "Geleia real", categoria: "Geleia real", unidade: "frasco 30 g", preco: 55 },
+    { nome: "Sabonete de própolis", categoria: "Cosmético", unidade: "unidade", preco: 12 },
   ]);
 
   const pontosRibeiro = await criarPontos(ribeiro, lucas, [
@@ -216,11 +242,12 @@ export async function criarDadosDemo(db: Db): Promise<"criado" | "ja-existe"> {
 
   // --- Mel Silva (segunda empresa, para testar o isolamento) ----------------------
   const silva = await criarEmpresa("Mel Silva", "mel-silva");
+  const categoriasSilva = await criarCategorias(silva);
   const marcos = await criarUsuario({ email: "marcos@melsilva.dev", nome: "Marcos Silva", papel: "master", empresaId: silva, compartilhaVendas: true });
   const bia = await criarUsuario({ email: "bia@melsilva.dev", nome: "Beatriz Lima", papel: "revendedor", empresaId: silva });
-  const produtosSilva = await criarProdutos(silva, [
-    { nome: "Mel de eucalipto", unidade: "pote 1 kg", preco: 42 },
-    { nome: "Mel de eucalipto", unidade: "sachê 10 g", preco: 1.5 },
+  const produtosSilva = await criarProdutos(silva, categoriasSilva, [
+    { nome: "Mel de eucalipto", categoria: "Mel", unidade: "pote 1 kg", preco: 42 },
+    { nome: "Mel de eucalipto", categoria: "Mel", unidade: "sachê 10 g", preco: 1.5 },
   ]);
   const pontosSilva = await criarPontos(silva, marcos, [
     { nome: "Mercado Central Campinas", logradouro: "Av. Benjamin Constant", numero: "1200", bairro: "Centro", cidade: "Campinas", uf: "SP", lat: -22.9071, lng: -47.0632 },

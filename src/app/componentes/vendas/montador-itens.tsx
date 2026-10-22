@@ -34,6 +34,16 @@ export function MontadorItens({
   const porId = new Map(produtos.map((p) => [p.id, p]));
   const total = totalDosItens(itens);
 
+  // Agrupa por categoria (mel, própolis, pólen…), para o catálogo não virar uma lista só quando crescer.
+  // A API já manda os produtos nessa ordem (por nome da categoria); aqui só junta os consecutivos.
+  const porCategoria: { chave: string; rotulo: string; itens: ProdutoCatalogo[] }[] = [];
+  for (const p of produtos) {
+    const chave = p.categoria?.id ?? "sem-categoria";
+    const grupo = porCategoria.find((g) => g.chave === chave);
+    if (grupo) grupo.itens.push(p);
+    else porCategoria.push({ chave, rotulo: p.categoria?.nome ?? "Sem categoria", itens: [p] });
+  }
+
   function escolherProduto(id: string) {
     setProdutoId(id);
     const produto = porId.get(id);
@@ -97,10 +107,14 @@ export function MontadorItens({
         <div className="flex flex-col gap-2.5">
           <select aria-label="Produto" value={produtoId} onChange={(e) => escolherProduto(e.target.value)} className={campo}>
             <option value="">Escolha o produto…</option>
-            {produtos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome} · {p.unidade}
-              </option>
+            {porCategoria.map(({ chave: chaveGrupo, rotulo, itens: daCategoria }) => (
+              <optgroup key={chaveGrupo} label={rotulo}>
+                {daCategoria.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome} · {p.unidade}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <div className="grid grid-cols-2 gap-2.5">

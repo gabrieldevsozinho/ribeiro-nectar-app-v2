@@ -14,7 +14,7 @@
     "db:migrar": "wrangler d1 migrations apply DB --local",
     "db:migrar-producao": "wrangler d1 migrations apply DB --remote",
     "db:reset": "node scripts/apagar-banco-local.mjs && npm run db:migrar",
-    "db:seed": "tsx scripts/seed-dev.ts",
+    "db:seed": "tsx --tsconfig tsconfig.node.json scripts/seed-dev.ts",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },

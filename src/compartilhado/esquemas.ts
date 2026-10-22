@@ -35,9 +35,13 @@ export const esquemaPerfil = z.object({
 
 export const esquemaProduto = z.object({
   nome: texto(120),
+  categoriaId: texto(40),
   unidade: texto(30),
   preco: texto(30),
 });
+
+/** Categoria do catálogo (linha, ex.: "Mel"): o master cria e exclui as da própria empresa. */
+export const esquemaCategoriaProduto = z.object({ nome: texto(60) });
 
 export const esquemaAtivo = z.object({ ativo: z.boolean() });
 

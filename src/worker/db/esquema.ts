@@ -184,6 +184,27 @@ export const googleMapsEmpresa = sqliteTable(
   ],
 );
 
+/**
+ * Categorias do catálogo (linhas como "Mel", "Própolis"…): cada empresa tem as suas, criadas
+ * pelo master. `criarEmpresa` já cadastra um conjunto inicial (veja DEFAULT_CATEGORIAS_PRODUTO),
+ * que o master edita livremente dali em diante.
+ */
+export const categoriasProduto = sqliteTable(
+  "categorias_produto",
+  {
+    id: id(),
+    empresaId: text("empresa_id")
+      .notNull()
+      .references(() => empresas.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(),
+    criadoEm: text("criado_em").notNull().default(agora),
+  },
+  (t) => [
+    check("categorias_produto_nome", sql`length(trim(${t.nome})) between 1 and 60`),
+    uniqueIndex("categorias_produto_nome_unico").on(t.empresaId, sql`lower(trim(${t.nome}))`),
+  ],
+);
+
 export const produtos = sqliteTable(
   "produtos",
   {
@@ -192,6 +213,10 @@ export const produtos = sqliteTable(
       .notNull()
       .references(() => empresas.id, { onDelete: "cascade" }),
     nome: text("nome").notNull(),
+    // Linha do catálogo (mel, própolis, pólen…), para organizar a tela quando há muitos produtos.
+    // Sem FK no banco (uma categoria excluída não pode deixar produto nenhum órfão: o serviço
+    // recusa a exclusão enquanto algum produto ainda usa a categoria).
+    categoriaId: text("categoria_id"),
     unidade: text("unidade").notNull(),
     precoSugeridoCentavos: integer("preco_sugerido_centavos").notNull(),
     ativo: integer("ativo", { mode: "boolean" }).notNull().default(true),
@@ -199,6 +224,9 @@ export const produtos = sqliteTable(
   },
   (t) => [
     check("produtos_nome", sql`length(trim(${t.nome})) between 1 and 120`),
+    // Sem CHECK na categoria: adicionar um CHECK exigiria recriar a tabela inteira, e o SQLite
+    // recusa (erro de chave estrangeira) porque itens_venda referencia produtos. A validação
+    // fica no Zod (esquemaProduto), que já recusa qualquer valor fora de CATEGORIAS_PRODUTO.
     check("produtos_unidade", sql`length(trim(${t.unidade})) between 1 and 30`),
     check("produtos_preco", sql`${t.precoSugeridoCentavos} >= 0`),
     uniqueIndex("produtos_nome_unidade_unico").on(t.empresaId, sql`lower(trim(${t.nome}))`, sql`lower(trim(${t.unidade}))`),

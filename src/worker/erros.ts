@@ -28,6 +28,7 @@ export function mensagemErroBanco(erro: unknown): string {
     return "Já existe um ponto de venda com este CNPJ.";
   if (mensagem.includes("pontos_endereco_unico")) return "Já existe um ponto de venda neste endereço.";
   if (mensagem.includes("produtos_nome_unidade_unico")) return "Já existe um produto com este nome e unidade.";
+  if (mensagem.includes("categorias_produto_nome_unico")) return "Já existe uma categoria com este nome.";
   if (mensagem.includes("empresas.slug")) return "Já existe uma empresa com este endereço.";
   if (mensagem.includes("perfis_email_unico") || mensagem.includes("auth_usuarios.email"))
     return "Já existe um usuário com este e-mail.";
