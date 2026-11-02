@@ -14,5 +14,5 @@ export async function entrar(page: Page, empresa: string, email: string, senha =
 
 export async function entrarComo(page: Page, email: string) {
   await entrar(page, "apiario-ribeiro", email);
-  await expect(page).toHaveURL(/\/apiario-ribeiro\/vendas$/);
+  await expect(page).toHaveURL(/\/apiario-ribeiro\/mapa$/);
 }

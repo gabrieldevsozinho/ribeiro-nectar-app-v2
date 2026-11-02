@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { formatarMoeda, formatarNumero, lerQuantidade, lerValorEmReais, subtotalEmReais } from "@/compartilhado/formato";
 import type { ProdutoCatalogo } from "@/compartilhado/tipos";
 import { IconeFechar, IconeMais } from "../icones";
@@ -30,8 +30,13 @@ export function MontadorItens({
   const [quantidade, setQuantidade] = useState("1");
   const [preco, setPreco] = useState("");
   const [erro, setErro] = useState<string>();
+  const idDicaPreco = useId();
 
   const porId = new Map(produtos.map((p) => [p.id, p]));
+  // O preço sugerido vem preenchido, mas quem vende pode cobrar outro valor.
+  const produtoEscolhido = porId.get(produtoId);
+  const precoDigitado = lerValorEmReais(preco);
+  const precoDiferente = produtoEscolhido && precoDigitado !== null && precoDigitado !== produtoEscolhido.precoSugerido;
   const total = totalDosItens(itens);
 
   // Agrupa por categoria (mel, própolis, pólen…), para o catálogo não virar uma lista só quando crescer.
@@ -81,6 +86,9 @@ export function MontadorItens({
                   </p>
                   <p className="text-sm text-texto-2">
                     {produto?.unidade} · {formatarMoeda(item.precoUnitario)} cada
+                    {produto && item.precoUnitario !== produto.precoSugerido && (
+                      <span className="text-texto-3"> (sugerido {formatarMoeda(produto.precoSugerido)})</span>
+                    )}
                   </p>
                 </div>
                 <span className="font-semibold">{formatarMoeda(subtotalEmReais(item.quantidade, item.precoUnitario))}</span>
@@ -123,10 +131,40 @@ export function MontadorItens({
               <input inputMode="decimal" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} className={campo} />
             </label>
             <label className="flex flex-col gap-1 text-sm font-semibold">
-              Preço unitário (R$)
-              <input inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} className={campo} placeholder="0,00" />
+              Seu preço (R$)
+              <input
+                inputMode="decimal"
+                value={preco}
+                onChange={(e) => setPreco(e.target.value)}
+                className={campo}
+                placeholder="0,00"
+                aria-describedby={idDicaPreco}
+              />
             </label>
           </div>
+          <p id={idDicaPreco} className="-mt-1 text-sm text-texto-2">
+            {produtoEscolhido ? (
+              <>
+                Preço sugerido: <strong className="text-texto">{formatarMoeda(produtoEscolhido.precoSugerido)}</strong>.
+                {precoDiferente ? (
+                  <>
+                    {" "}Você está cobrando outro valor.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setPreco(precoParaCampo(produtoEscolhido.precoSugerido))}
+                      className="font-semibold text-mel-texto underline underline-offset-2"
+                    >
+                      Usar o sugerido
+                    </button>
+                  </>
+                ) : (
+                  " Você pode cobrar outro valor: é só mudar o preço."
+                )}
+              </>
+            ) : (
+              "Escolha o produto: o preço sugerido vem preenchido e você pode mudar."
+            )}
+          </p>
           {erro && <p className="text-sm text-erro">{erro}</p>}
           <button
             type="button"

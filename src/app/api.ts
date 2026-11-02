@@ -4,6 +4,7 @@
  * os outros viram mensagem na própria tela.
  */
 import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { MotivoAcesso, RespostaErro } from "@/compartilhado/tipos";
 
 export class ErroApi extends Error {
@@ -75,7 +76,7 @@ export function tratarErroDeAcesso(erro: unknown) {
       navegar("/admin/empresas");
       break;
     case "so-master":
-      navegar(`/${slug}/vendas`);
+      navegar(inicioDaEmpresa(slug));
       break;
     default:
       // bloqueado, excluido, empresa-inativa, outra-empresa, sem-permissao: a API já encerrou a sessão.

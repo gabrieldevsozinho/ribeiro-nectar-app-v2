@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { ResultadoAcao } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa, fila, lerFormulario } from "../../../api";
 import { CampoSenhaTemporaria, CredencialCriada } from "../../../componentes/senha-temporaria";
@@ -14,7 +15,7 @@ export default function PaginaNovoRevendedor() {
   // A cada cadastro, "Cadastrar outro" recomeça o formulário do zero.
   const [versao, setVersao] = useState(0);
 
-  if (usuario.papel !== "master") return <Navigate to={`/${slug}/vendas`} replace />;
+  if (usuario.papel !== "master") return <Navigate to={inicioDaEmpresa(slug)} replace />;
 
   return (
     <>

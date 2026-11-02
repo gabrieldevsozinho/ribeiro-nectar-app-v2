@@ -1,6 +1,7 @@
 import { Navigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { formatarDataHora } from "@/compartilhado/formato";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { ConfigGoogleMaps } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa } from "../../../api";
 import { Aviso, Carregando, Cartao, ErroCarregar, Selo, TituloPagina, useTitulo } from "../../../componentes/ui";
@@ -18,7 +19,7 @@ export default function PaginaGoogleMaps() {
     enabled: usuario.papel === "master",
   });
 
-  if (usuario.papel !== "master") return <Navigate to={`/${slug}/vendas`} replace />;
+  if (usuario.papel !== "master") return <Navigate to={inicioDaEmpresa(slug)} replace />;
 
   const status = config.data?.status ?? "nao_configurada";
 

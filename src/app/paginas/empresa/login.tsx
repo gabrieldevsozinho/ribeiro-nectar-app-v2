@@ -1,6 +1,7 @@
 import { Navigate, useNavigate, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MOTIVOS_SAIDA } from "@/compartilhado/mensagens";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { EmpresaPublica, UsuarioLogado } from "@/compartilhado/tipos";
 import { api, fila } from "../../api";
 import { FormularioLogin } from "../../componentes/formulario-login";
@@ -28,7 +29,7 @@ export default function PaginaLogin() {
   // Já está logado nesta empresa: vai direto para dentro.
   const logado = sessao.data && "usuario" in sessao.data ? sessao.data.usuario : null;
   if (logado && logado.empresa?.slug === slug) {
-    return <Navigate to={logado.deveTrocarSenha ? `/${slug}/primeiro-acesso` : `/${slug}/vendas`} replace />;
+    return <Navigate to={logado.deveTrocarSenha ? `/${slug}/primeiro-acesso` : inicioDaEmpresa(slug)} replace />;
   }
 
   const aviso = motivo ? MOTIVOS_SAIDA[motivo] : undefined;

@@ -1,6 +1,7 @@
 import { Link, Navigate, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { formatarData, formatarMoeda } from "@/compartilhado/formato";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { ListaRevendedores } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa } from "../../../api";
 import { IconeMais, IconeSeta } from "../../../componentes/icones";
@@ -18,7 +19,7 @@ export default function PaginaRevendedores() {
     enabled: usuario.papel === "master",
   });
 
-  if (usuario.papel !== "master") return <Navigate to={`/${slug}/vendas`} replace />;
+  if (usuario.papel !== "master") return <Navigate to={inicioDaEmpresa(slug)} replace />;
   if (lista.isError) return <ErroCarregar erro={lista.error} aoTentar={() => lista.refetch()} />;
   if (!lista.data) {
     return (

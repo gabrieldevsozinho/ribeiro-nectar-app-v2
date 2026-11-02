@@ -32,6 +32,11 @@ export function MenuApp({ itens, titulo, subtitulo, nomeUsuario, destinoAoSair }
   const [abertoEm, setAbertoEm] = useState<string | null>(null);
   const aberto = abertoEm === caminho;
   const setAberto = (valor: boolean) => setAbertoEm(valor ? caminho : null);
+  // Item ativo: o de endereço mais longo que contém a página (em /vendas/nova, "Nova venda", não "Vendas").
+  const hrefAtivo = itens
+    .map((item) => item.href)
+    .filter((href) => caminho === href || caminho.startsWith(href + "/"))
+    .sort((a, b) => b.length - a.length)[0];
 
   const conteudo = (
     <div className="flex h-full flex-col">
@@ -46,11 +51,13 @@ export function MenuApp({ itens, titulo, subtitulo, nomeUsuario, destinoAoSair }
       <nav className="flex-1 overflow-y-auto px-3" aria-label="Menu principal">
         <ul className="flex flex-col gap-0.5">
           {itens.map((item) => {
-            const ativo = caminho === item.href || (item.href !== itens[0].href && caminho.startsWith(item.href + "/"));
+            const ativo = item.href === hrefAtivo;
             return (
               <li key={item.href}>
                 <Link
                   to={item.href}
+                  // Tocar na página em que já está também fecha o menu do celular.
+                  onClick={() => setAberto(false)}
                   aria-current={ativo ? "page" : undefined}
                   className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors ${
                     ativo

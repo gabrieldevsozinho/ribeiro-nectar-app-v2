@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { setCookie } from "hono/cookie";
 import { esquemaCredenciais, esquemaEntrarEmpresa } from "@/compartilhado/esquemas";
-import { COOKIE_ULTIMA_EMPRESA } from "@/compartilhado/slug";
+import { COOKIE_ULTIMA_EMPRESA, inicioDaEmpresa } from "@/compartilhado/slug";
 import { encerrarSessao, obterSessao, paraNavegador } from "../acesso";
 import { empresas, perfis } from "../db/esquema";
 import { validar } from "../erros";
@@ -104,7 +104,7 @@ export const rotasSessao = new Hono<AppEnv>()
       maxAge: 60 * 60 * 24 * 365,
       path: "/",
     });
-    return c.json({ destino: perfil.deveTrocarSenha ? `/${slug}/primeiro-acesso` : `/${slug}/vendas` });
+    return c.json({ destino: perfil.deveTrocarSenha ? `/${slug}/primeiro-acesso` : inicioDaEmpresa(slug) });
   })
 
   /** Login do administrador da plataforma, em /admin/login. */

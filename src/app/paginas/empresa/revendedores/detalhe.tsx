@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { formatarDataHora, formatarMoeda, paraComparar } from "@/compartilhado/formato";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { RevendedorDetalhe } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa, fila } from "../../../api";
 import { Aviso, Botao, Campo, Carregando, Cartao, ErroCarregar, LinkVoltar, Selo, TituloPagina, Vazio, useTitulo } from "../../../componentes/ui";
@@ -18,7 +19,7 @@ export default function PaginaRevendedor() {
     enabled: usuario.papel === "master",
   });
 
-  if (usuario.papel !== "master") return <Navigate to={`/${slug}/vendas`} replace />;
+  if (usuario.papel !== "master") return <Navigate to={inicioDaEmpresa(slug)} replace />;
   if (detalhe.isError) return <ErroCarregar erro={detalhe.error} aoTentar={() => detalhe.refetch()} />;
   if (!detalhe.data) return <Carregando />;
 

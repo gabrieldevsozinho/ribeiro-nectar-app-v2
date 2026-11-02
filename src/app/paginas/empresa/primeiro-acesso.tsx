@@ -1,5 +1,6 @@
 import { Navigate, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { UsuarioLogado } from "@/compartilhado/tipos";
 import { api, chave, daEmpresa, fila } from "../../api";
 import { FormularioNovaSenha } from "../../componentes/formulario-login";
@@ -13,7 +14,7 @@ export default function PaginaPrimeiroAcesso() {
   const navegar = useNavigate();
   const eu = useQuery({ queryKey: chave(slug, "eu"), queryFn: () => api.get<UsuarioLogado>(daEmpresa(slug, "/eu")) });
 
-  if (eu.data && !eu.data.deveTrocarSenha) return <Navigate to={`/${slug}/vendas`} replace />;
+  if (eu.data && !eu.data.deveTrocarSenha) return <Navigate to={inicioDaEmpresa(slug)} replace />;
 
   return (
     <TelaAcesso rodape="Ninguém da empresa, nem o master, vê a sua senha.">

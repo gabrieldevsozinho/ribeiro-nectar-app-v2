@@ -34,6 +34,31 @@ export function piorSituacao(situacoes: (Situacao | null)[]): Situacao | null {
   return null;
 }
 
+/**
+ * Dias até o comércio mudar de cor; no atrasado, há quantos dias ele passou do prazo.
+ * Ex.: em dia até 30 e atenção até 60: com 25 dias, entra em atenção em 6 dias (no 31º).
+ */
+export function diasAteMudar(dias: number, prazos: PrazosVisita): number {
+  const situacao = situacaoPelosDias(dias, prazos);
+  if (situacao === "em_dia") return prazos.emDia + 1 - dias;
+  if (situacao === "atencao") return prazos.atencao + 1 - dias;
+  return dias - (prazos.atencao + 1);
+}
+
+/** "Entra em atenção em 6 dias", "Fica atrasado amanhã", "Atrasado há 12 dias". */
+export function descreverPrazo(dias: number, prazos: PrazosVisita): string {
+  const n = diasAteMudar(dias, prazos);
+  const quando = n === 1 ? "amanhã" : `em ${n} dias`;
+  switch (situacaoPelosDias(dias, prazos)) {
+    case "em_dia":
+      return `Entra em atenção ${quando}`;
+    case "atencao":
+      return `Fica atrasado ${quando}`;
+    case "atrasado":
+      return n === 0 ? "Ficou atrasado hoje" : `Atrasado há ${n === 1 ? "1 dia" : `${n} dias`}`;
+  }
+}
+
 /** "hoje", "ontem", "há 45 dias" */
 export function haQuantoTempo(dias: number): string {
   if (dias === 0) return "hoje";

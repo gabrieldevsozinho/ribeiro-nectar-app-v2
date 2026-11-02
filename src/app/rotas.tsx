@@ -65,7 +65,7 @@ export const rotas: RouteObject[] = [
         path: ":slug",
         element: <LayoutEmpresa />,
         children: [
-          { index: true, element: <Navigate to="vendas" replace /> },
+          { index: true, element: <Navigate to="mapa" replace /> }, // o mesmo de inicioDaEmpresa
           { path: "vendas", element: <PaginaVendas /> },
           { path: "vendas/nova", element: <PaginaNovaVenda /> },
           { path: "vendas/:id", element: <PaginaVenda /> },

@@ -21,3 +21,8 @@ export function normalizarSlug(texto: string): string {
 export function slugValido(slug: string): boolean {
   return slug.length >= 3 && slug.length <= 60 && SLUG_VALIDO.test(slug) && !SLUGS_RESERVADOS.has(slug);
 }
+
+/** Página onde o usuário da empresa cai ao entrar no sistema. */
+export function inicioDaEmpresa(slug: string) {
+  return `/${slug}/mapa`;
+}

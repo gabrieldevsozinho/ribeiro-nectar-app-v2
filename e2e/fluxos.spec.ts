@@ -22,8 +22,8 @@ test("primeiro acesso obriga a trocar a senha temporária", async ({ page }) => 
   await page.getByLabel("Nova senha", { exact: true }).fill("Favo-e2e-2026");
   await page.getByLabel("Repita a nova senha").fill("Favo-e2e-2026");
   await page.getByRole("button", { name: "Salvar e continuar" }).click();
-  await expect(page).toHaveURL(/\/apiario-ribeiro\/vendas$/);
-  await expect(page.getByRole("heading", { name: "Minhas vendas" })).toBeVisible();
+  await expect(page).toHaveURL(/\/apiario-ribeiro\/mapa$/);
+  await expect(page.getByRole("heading", { name: "Mapa e cidades" })).toBeVisible();
 });
 
 test("revendedor registra uma venda e acrescenta um item", async ({ page }) => {
@@ -97,6 +97,6 @@ test("menu de cidades abre o pop-up com as vendas paginadas", async ({ page }) =
 test("revendedor não acessa a área do master", async ({ page }) => {
   await entrarComo(page, "maria@apiarioribeiro.dev");
   await page.goto("/apiario-ribeiro/revendedores");
-  await expect(page).toHaveURL(/\/apiario-ribeiro\/vendas$/);
+  await expect(page).toHaveURL(/\/apiario-ribeiro\/mapa$/);
   await expect(page.getByRole("link", { name: "Revendedores" })).toHaveCount(0);
 });

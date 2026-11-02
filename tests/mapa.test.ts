@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chaveCidade, melhorGrafia } from "../src/compartilhado/cidades";
-import { diasDesde, faixasDosPrazos, piorSituacao, situacaoPelosDias } from "../src/compartilhado/semaforo";
+import { descreverPrazo, diasAteMudar, diasDesde, faixasDosPrazos, piorSituacao, situacaoPelosDias } from "../src/compartilhado/semaforo";
 import { chamar, consultar, entrar } from "./apoio";
 
 const BASE = "/api/e/apiario-ribeiro";
@@ -15,6 +15,18 @@ describe("semáforo de visitas", () => {
     expect(situacaoPelosDias(61, prazos)).toBe("atrasado");
     expect(faixasDosPrazos(prazos)).toEqual({ em_dia: "até 30 dias", atencao: "de 31 a 60 dias", atrasado: "mais de 60 dias" });
     expect(piorSituacao(["em_dia", null, "atencao"])).toBe("atencao");
+  });
+
+  it("diz quanto falta para mudar de cor (nos em dia, para entrar em atenção)", () => {
+    const prazos = { emDia: 30, atencao: 60 };
+    expect(diasAteMudar(25, prazos)).toBe(6);
+    expect(descreverPrazo(25, prazos)).toBe("Entra em atenção em 6 dias");
+    expect(descreverPrazo(30, prazos)).toBe("Entra em atenção amanhã");
+    expect(descreverPrazo(31, prazos)).toBe("Fica atrasado em 30 dias");
+    expect(descreverPrazo(60, prazos)).toBe("Fica atrasado amanhã");
+    expect(descreverPrazo(61, prazos)).toBe("Ficou atrasado hoje");
+    expect(descreverPrazo(62, prazos)).toBe("Atrasado há 1 dia");
+    expect(descreverPrazo(75, prazos)).toBe("Atrasado há 14 dias");
   });
 
   it("conta dias de calendário no fuso de Brasília", () => {

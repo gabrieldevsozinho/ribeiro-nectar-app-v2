@@ -69,9 +69,9 @@ export default function LayoutEmpresa() {
 function itensDoMenu(slug: string, usuario: UsuarioDaEmpresa): ItemMenu[] {
   const base = `/${slug}`;
   const comuns: ItemMenu[] = [
+    { href: `${base}/mapa`, rotulo: "Mapa e cidades", icone: <IconeMapa /> },
     { href: `${base}/vendas`, rotulo: usuario.papel === "master" ? "Vendas" : "Minhas vendas", icone: <IconeVendas /> },
     { href: `${base}/vendas/nova`, rotulo: "Nova venda", icone: <IconeMais />, destaque: true },
-    { href: `${base}/mapa`, rotulo: "Mapa e cidades", icone: <IconeMapa /> },
     { href: `${base}/pontos`, rotulo: "Pontos de venda", icone: <IconeLoja /> },
     { href: `${base}/produtos`, rotulo: "Produtos", icone: <IconePote /> },
   ];

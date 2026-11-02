@@ -18,6 +18,7 @@ import { Bolinha, COR_TEXTO_SITUACAO } from "../../componentes/mapa/situacao";
 import { PopupVendasPonto } from "../../componentes/vendas/popup-vendas-ponto";
 import { IconeAlvo, IconePredio, IconeSeta, IconeVoltar } from "../../componentes/icones";
 import { Aviso, Selo, Vazio } from "../../componentes/ui";
+import { SituacaoComercios } from "./situacao-comercios";
 
 /** Comércio no mapa, com os dias desde a última venda e a cor do semáforo (null sem prazos). */
 type PontoNoMapa = PontoComVendas & { chaveCidade: string; dias: number; situacao: Situacao | null };
@@ -387,6 +388,8 @@ export function PainelMapa({
           )}
         </aside>
       </div>
+
+      <SituacaoComercios comercios={pontos} prazos={prazos} ehMaster={ehMaster} aoAbrir={abrirPonto} aoDefinirPrazos={aoAlterarPrazos} />
 
       {pontoAberto && (
         <PopupVendasPonto

@@ -25,6 +25,7 @@ import {
   esquemaSalvarChave,
   esquemaTrocarSenha,
 } from "@/compartilhado/esquemas";
+import { inicioDaEmpresa } from "@/compartilhado/slug";
 import type { DadosMapa, FiltrosVendasDisponiveis } from "@/compartilhado/tipos";
 import { exigirMaster, exigirUsuarioDaEmpresa, paraNavegador, usuarioDaEmpresa } from "../acesso";
 import { perfis } from "../db/esquema";
@@ -78,9 +79,9 @@ export const rotasAcessoInicial = new Hono<AppEnv>()
   .get("/eu", comTrocaPendente, (c) => c.json(paraNavegador(c.get("usuario"))))
   .post("/primeiro-acesso", comTrocaPendente, validar("json", esquemaNovaSenha), async (c) => {
     const usuario = usuarioDaEmpresa(c);
-    if (!usuario.deveTrocarSenha) return c.json({ destino: `/${usuario.empresa.slug}/vendas` });
+    if (!usuario.deveTrocarSenha) return c.json({ destino: inicioDaEmpresa(usuario.empresa.slug) });
     await trocarSenhaInicial(c.get("db"), c.get("auth"), usuario, c.req.valid("json"));
-    return c.json({ destino: `/${usuario.empresa.slug}/vendas` });
+    return c.json({ destino: inicioDaEmpresa(usuario.empresa.slug) });
   });
 
 export const rotasEmpresa = new Hono<AppEnv>()

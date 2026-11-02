@@ -57,7 +57,7 @@ describe("primeiro acesso", () => {
       cookie,
       corpo: { senha: "Favo-teste-2026", confirmacao: "Favo-teste-2026" },
     });
-    expect(troca.dados.destino).toBe("/apiario-ribeiro/vendas");
+    expect(troca.dados.destino).toBe("/apiario-ribeiro/mapa");
     expect((await chamar("/api/e/apiario-ribeiro/vendas", { cookie })).status).toBe(200);
 
     // A senha nova passa a valer; a temporária, não.
